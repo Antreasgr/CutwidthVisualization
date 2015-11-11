@@ -1,0 +1,2301 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Graph Theory - CutWidth Visualization</title>
+
+    <!-- JavaScript Libraries //-->
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+
+    <!-- CSS Style //-->
+    <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,900|Source+Code+Pro:300" rel="stylesheet" type="text/css">
+    <!--<link href="http://fonts.googleapis.com/css?family=Helvetica%20Neue:300,900" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Open%20Sans:300,900" rel="stylesheet" type="text/css">-->
+
+    <style>
+        body {
+            /*font-family: 'Source Sans Pro', sans-serif;*/
+            font-weight: 300;
+            font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+            font-size: 14px;
+            line-height: 1.42857;
+            margin: 0px;
+        }
+
+        .container {
+            margin: 10px;
+        }
+
+        .arrowR, .arrowL {
+            fill: none;
+            stroke: #888888;
+            stroke-opacity: 1.0;
+            stroke-width: 2px;
+        }
+
+        .background {
+            <!-- background-color: #F1F2F6; -->
+        }
+
+        .well {
+            position: absolute;
+            top: 50px;
+            width: 90%;
+            height: 60%;
+            padding: 10px;
+            margin: 0 auto;
+            color: #434A54;
+            background-color: #FFF;
+            border: medium none;
+            border-radius: 4px;
+            box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+            .well h2 {
+                color: #434A54;
+                background-color: #E6E9ED;
+                border-color: #E6E9ED;
+                text-align: center;
+                border-radius: 4px 4px 0px 0px;
+                padding: 10px 15px;
+                border-bottom: 1px solid transparent;
+            }
+
+        .help li {
+            margin: 15px;
+        }
+
+        .debug {
+            right: 0px;
+            width: auto;
+            bottom: 0px;
+            top: auto;
+            height: auto;
+        }
+
+        .jsonexport {
+            width: 100%;
+            height: 70%;
+        }
+
+        .btn {
+            color: #FFF;
+            padding: 6px 12px;
+            margin-bottom: 0px;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.42857;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: middle;
+            cursor: pointer;
+            -moz-user-select: none;
+            background-image: none;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+
+            .btn, .btn.disabled, .btn[disabled] {
+                background-color: #aab2bd;
+                border-color: #aab2bd;
+            }
+
+                .btn.disabled, .btn[disabled] {
+                    filter: alpha(opacity=45);
+                    opacity: .45;
+                }
+
+        .btn-link, .btn-link:hover, .btn-link:focus, .btn-link:active, .btn-link.active, .btn-link.disabled, .btn-link[disabled] {
+            color: #3bafda;
+            background-color: transparent;
+            border-color: transparent;
+            -webkit-box-shadow: none;
+            -moz-box-shadow: none;
+            box-shadow: none;
+        }
+
+        .btn-default:hover, .btn-default:focus, .btn-default:active, .btn-default.active {
+            background-color: #ccd1d9;
+            border-color: #ccd1d9;
+        }
+
+        .btn-default, .btn-default.disabled, .btn-default[disabled] {
+            background-color: white;
+            color: #333;
+        }
+
+        .open .dropdown-toggle.btn-default {
+            background-color: #ccd1d9;
+            border-color: #ccd1d9;
+        }
+
+        .btn-primary, .btn-primary:active, .btn-primary.active, .btn-primary.disabled, .btn-primary[disabled] {
+            background-color: #3bafda;
+            border-color: #3bafda;
+        }
+
+            .btn-primary:hover, .btn-primary:focus {
+                background-color: #4fc1e9;
+                border-color: #4fc1e9;
+            }
+
+        .open .dropdown-toggle.btn-primary {
+            background-color: #4fc1e9;
+            border-color: #4fc1e9;
+        }
+
+        .btn-info, .btn-info:active, .btn-info.active, .btn-info.disabled, .btn-info[disabled] {
+            background-color: #37bc9b;
+            border-color: #37bc9b;
+        }
+
+            .btn-info:hover, .btn-info:focus {
+                background-color: #48cfad;
+                border-color: #48cfad;
+            }
+
+        .open .dropdown-toggle.btn-info {
+            background-color: #48cfad;
+            border-color: #48cfad;
+        }
+
+        .btn-success, .btn-success:active, .btn-success.active, .btn-success.disabled, .btn-success[disabled] {
+            background-color: #8cc152;
+            border-color: #8cc152;
+        }
+
+            .btn-success:hover, .btn-success:focus {
+                background-color: #a0d468;
+                border-color: #a0d468;
+            }
+
+        .open .dropdown-toggle.btn-success {
+            background-color: #a0d468;
+            border-color: #a0d468;
+        }
+
+        .btn-warning, .btn-warning:active, .btn-warning.active, .btn-warning.disabled, .btn-warning[disabled] {
+            background-color: #f6bb42;
+            border-color: #f6bb42;
+        }
+
+            .btn-warning:hover, .btn-warning:focus {
+                background-color: #ffce54;
+                border-color: #ffce54;
+            }
+
+        .open .dropdown-toggle.btn-warning {
+            background-color: #ffce54;
+            border-color: #ffce54;
+        }
+
+        .btn-danger, .btn-danger:active, .btn-danger.active, .btn-danger.disabled, .btn-danger[disabled],
+        .btn-danger .open .dropdown-toggle.btn {
+            background-color: #da4453;
+            border-color: #da4453;
+        }
+
+            .btn-danger:hover, .btn-danger:focus {
+                background-color: #ed5565;
+                border-color: #ed5565;
+            }
+
+        .open .dropdown-toggle.btn-danger {
+            background-color: #ed5565;
+            border-color: #ed5565;
+        }
+
+        .btn-group > .btn:first-child:not(:last-child):not(.dropdown-toggle) {
+            border-top-right-radius: 0px;
+            border-bottom-right-radius: 0px;
+        }
+
+        .btn-group .btn-danger:first-child, .btn-group .btn-info:first-child, .btn-group .btn-primary:first-child, .btn-group .btn-success:first-child, .btn-group .btn-warning:first-child, .btn-group .btn:first-child {
+            border-left-color: transparent;
+        }
+
+        .btn-group > .btn:first-child {
+            margin-left: 0px;
+        }
+
+        .btn-group .btn {
+            border-left-color: #96A0AD;
+        }
+
+        .btn-group-vertical > .btn, .btn-group > .btn {
+            position: relative;
+            float: left;
+        }
+
+            .btn-group > .btn:not(:first-child):not(:last-child):not(.dropdown-toggle) {
+                border-radius: 0px;
+            }
+
+        .btn-group .btn + .btn, .btn-group .btn + .btn-group, .btn-group .btn-group + .btn, .btn-group .btn-group + .btn-group {
+            margin-left: -1px;
+        }
+
+        .btn-group > .btn:last-child:not(:first-child), .btn-group > .dropdown-toggle:not(:first-child) {
+            border-top-left-radius: 0px;
+            border-bottom-left-radius: 0px;
+        }
+
+        .btn-group, .btn-group-vertical {
+            position: relative;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .left-space {
+            padding-left: 25px;
+        }
+
+        input[type="text"] {
+            width: 70%;
+            height: 34px;
+            font-size: 14px;
+            line-height: 1.42857143;
+            color: #555;
+            background-color: #fff;
+            background-image: none;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+            box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+            -webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
+            -o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+            transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+        }
+
+        input:focus {
+            border-color: #66afe9;
+            outline: 0;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);
+            box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);
+        }
+
+        input::-moz-placeholder {
+            color: #999;
+            opacity: 1;
+        }
+
+        b {
+            font-weight: 900;
+        }
+
+        .outline {
+            fill: none;
+            stroke: #888888;
+            stroke-width: 1px;
+        }
+
+        .tooltip, .tooltipb {
+            font-size: 10pt;
+            font-weight: 900;
+            fill: #000000;
+            stroke: #ffffff;
+            stroke-width: 0.25px;
+            cursor: pointer;
+        }
+
+        .tooltipb {
+        }
+
+        .cutwidths {
+            font-weight: 600;
+            fill: #000;
+        }
+
+        .node {
+            stroke: #ffffff;
+            stroke-width: 2px;
+            fill: #000 !important;
+        }
+
+            .node:hover {
+                stroke: red !important;
+                stroke-opacity: 1.0;
+            }
+
+        .link, .treelink {
+            fill: none;
+            stroke: #888888;
+            stroke-weight: 1px;
+            <!-- stroke-opacity: 0.5; -->
+        }
+
+        .highlight {
+            stroke: red;
+            stroke-weight: 4px;
+            stroke-opacity: 1.0;
+        }
+
+        .cuts {
+            stroke-dasharray: 5, 5, 5, 5, 5, 5, 10, 5, 10, 5, 10, 5;
+            stroke: #000;
+            stroke-width: 1px;
+        }
+
+        .halfline {
+            stroke: rgba(102,175,233,.6);
+            stroke-width: 1px;
+            display: none;
+        }
+
+        .maxcut {
+            font-size: 35pt;
+            font-weight: 900;
+            fill: #000000;
+            stroke: #ffffff;
+            stroke-width: 0.25px;
+            text-anchor: middle;
+        }
+
+        .treenode circle {
+            fill: #fff;
+            stroke: #000 !important;
+            stroke-width: 3px;
+        }
+
+            .treenode circle:hover {
+                stroke: #4E606F;
+            }
+
+        .treenode.active {
+            stroke: #4E60fF;
+        }
+
+        svg {
+        }
+
+        code {
+            padding: 2px 4px;
+            color: #D14;
+            white-space: nowrap;
+            background-color: #F7F7F9;
+            border: 1px solid #E1E1E8;
+            font-family: Monaco,Meno,Consolas,"Courier New",monospace;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .code-green {
+            color: #3C763D;
+        }
+
+        .debugul li {
+            margin: 15px;
+        }
+
+        .debugul.orders li {
+            margin: 0px;
+            margin-left: 15px;
+        }
+
+            .debugul.orders li.selected {
+                list-style: circle;
+            }
+
+        .debugul {
+            margin: 0px;
+            padding: 0px;
+            list-style: none;
+            overflow: auto;
+            max-width: 400px;
+        }
+    </style>
+
+    <script>
+        /* GLOBALS */
+        var margin = 80;            // amount of margin around plot area
+        var width = window.innerWidth;           // width of svg image
+        var height = window.innerHeight - margin;           // height of svg image
+
+        var pad = margin / 3;       // actual padding amount
+        var radius = 10;             // fixed node radius
+        var yfixed = pad + radius + 80;  // y position for all nodes
+
+        var arc = null;
+        var color = null;
+        var colorText = null;
+
+        var lock = false;
+
+        var gGraph = null;
+        var plot = null;
+
+        var plotLinear = null;
+
+        /**
+        * K-combinations
+        *
+        * Get k-sized combinations of elements in a set.
+        *
+        * Usage:
+        *   k_combinations(set, k)
+        *
+        * Parameters:
+        *   set: Array of objects of any type. They are treated as unique.
+        *   k: size of combinations to search for.
+        *
+        * Return:
+        *   Array of found combinations, size of a combination is k.
+        *
+        * Examples:
+        *
+        *   k_combinations([1, 2, 3], 1)
+        *   -> [[1], [2], [3]]
+        *
+        *   k_combinations([1, 2, 3], 2)
+        *   -> [[1,2], [1,3], [2, 3]
+        *
+        *   k_combinations([1, 2, 3], 3)
+        *   -> [[1, 2, 3]]
+        *
+        *   k_combinations([1, 2, 3], 4)
+        *   -> []
+        *
+        *   k_combinations([1, 2, 3], 0)
+        *   -> []
+        *
+        *   k_combinations([1, 2, 3], -1)
+        *   -> []
+        *
+        *   k_combinations([], 0)
+        *   -> []
+        */
+        function k_combinations(set, k) {
+            var i, j, combs, head, tailcombs;
+
+            if (k > set.length || k <= 0) {
+                return [];
+            }
+
+            if (k == set.length) {
+                return [set];
+            }
+
+            if (k == 1) {
+                combs = [];
+                for (i = 0; i < set.length; i++) {
+                    combs.push([set[i]]);
+                }
+                return combs;
+            }
+
+            // Assert {1 < k < set.length}
+
+            combs = [];
+            for (i = 0; i < set.length - k + 1; i++) {
+                head = set.slice(i, i + 1);
+                tailcombs = k_combinations(set.slice(i + 1), k - 1);
+                for (j = 0; j < tailcombs.length; j++) {
+                    combs.push(head.concat(tailcombs[j]));
+                }
+            }
+            return combs;
+        }
+
+        function updateDebug(d) {
+            var ord = "";
+            if (gLinear.minOrders != null) {
+                ord = "<ul class='debugul orders'>";
+                gLinear.minOrders.forEach(function (el, i) {
+                    if (i == gLinear.minOrderIndex) {
+                        ord += '<li class="selected">[' + el.join(",") + ']</li>';
+                    }
+                    else
+                        ord += '<li>[' + el.join(",") + ']</li>';
+                });
+
+                ord += "</ul>";
+            }
+
+            if (d) {
+                var c = d.size;
+                if (d.children) {
+                    for (var i = 0; i < d.children.length; i++) {
+                        c += d.children[i].size;
+                    }
+                }
+                ord += "<span>" + c + "</span>";
+            }
+
+            $(".well.debug div").html(ord);
+            return;
+
+            if (!d)
+                return;
+
+            var s = "";
+            if (d) {
+                s += "<ul class='debugul'>";
+                s += "<li><span>Node.Size: </span>" + d.size + "</li>";
+                if (d.fi != null) {
+                    s += "<li><span>Node.Fi: </span>" + d.fi + "</li>";
+                }
+                if (d.ci != null) {
+                    s += "<li><span>Node.Ci: </span>[" + d.ci.join(",") + "]" + "</li>";
+                    if (d.parent) {
+                        var uRi = [];
+                        var uLi = [];
+                        for (var i = 0; i < d.ci.length; i++) {
+
+                            uRi.push(d.ci[i] + (d.parent.size * (d.ci.length - i - 1)));
+                            uLi.push(d.ci[i] + (d.parent.size * (i + 1)));
+                        }
+
+                        s += "<li><span>Node.uRi: </span>[" + uRi.join(",") + "]" + "</li>";
+                        s += "<li><span>Node.uLi: </span>[" + uLi.join(",") + "]" + "</li>";
+                    }
+                }
+
+                if (d.minCW != null) {
+                    s += "<li><span>Node.Minimum Cut: </span>[" + d.minCW.Value + "]" + "</li>";
+                }
+
+
+                s += "</ul>";
+            }
+
+            $(".well.debug div").html(s);
+        }
+
+        function myTree() {
+            this.tree = d3.layout.tree()
+                       .size([0.2 * window.innerWidth, height]);
+
+            this.diagonal = d3.svg.diagonal()
+                .projection(function (d) { return [d.x, d.y]; });
+
+            this.root = [];
+            this.length = 0;
+
+            // CAUTION THIS IS SHARED WITH LinearGraph to keep syncronized
+            this.graph = null;
+
+            this.treeSelection = null;
+
+            this.createTree = function (graph) {
+                // try to create a tree
+                this.graph = graph;
+
+                if (graph.nodes.length > 0) {
+                    var dataMap = graph.nodes.reduce(function (map, node) {
+                        map[node.name] = node;
+                        return map;
+                    }, {});
+
+                    var nextIndex = 1;
+                    var t = this;
+                    graph.nodes.forEach(function (d, i) {
+                        // add to parent
+                        var parent = dataMap[d.parent];
+                        if (parent) {
+                            // create child array if it doesn't exist
+                            if (parent.children == null) {
+                                parent.group1 = nextIndex;
+                                nextIndex++;
+                            }
+
+                            (parent.children || (parent.children = []))
+                             // add node to child array
+                             .push(d);
+
+                            d.group1 = parent.group1;
+                        } else {
+                            // parent is null or missing
+                            d.group1 = 0;
+                            t.root.push(d);
+                        }
+                    });
+
+                    this.length = graph.nodes.length;
+                }
+            }
+
+            this.resizeTree = function () {
+                this.tree = d3.layout.tree()
+                      .size([0.2 * window.innerWidth, height]);
+
+                this.updateTree(this.root);
+            }
+
+            this.updateTree = function (r) {
+                var root = r;
+                if (Array.isArray(r)) {
+                    root = r[0];
+                }
+
+                // Compute the new tree layout.
+                var thisTree = this;
+
+                this.tree.sort(function comparator(a, b) {
+                    return a.order - b.order;
+                });
+
+                var n = this.tree.nodes(root).reverse(),
+                 links = this.tree.links(n);
+
+                // Normalize for fixed-depth.
+                n.forEach(function (d) {
+                    d.y = d.depth * 100;
+                    // if we have an ordering change the fill
+                    if (d.left != null && d.left.length > 0) {
+                        for (var i = 0; i < d.left.length; i++) {
+                            d.left[i].fill = "leftgrad";
+                        }
+                    }
+                    if (d.right != null && d.right.length > 0) {
+                        for (var i = 0; i < d.right.length; i++) {
+                            d.right[i].fill = "rightgrad";
+                        }
+                    }
+                });
+
+                // Declare the nodes
+                var node = plot
+                .selectAll(".treenode")
+                 .data(n, function (d) { return d.name; });
+
+                node.exit().remove();
+
+                node.transition()
+                    .duration(500)
+                    .attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+                node.selectAll("text")
+                    .text(function (d) { return d.size; })
+
+                //update styles
+                node.select("circle")
+                    .style("fill", function (d) { return (d.fill ? "url(#" + d.fill + ")" : "#fff"); });
+
+                // Enter the nodes.
+                var nodeEnter = node.enter().append("g")
+                 .attr("class", "treenode")
+                 .attr("transform", function (d) {
+                     return "translate(" + d.x + "," + d.y + ")";
+                 })
+                 .on("mouseover", function (d, i) { thisTree.treeSelection = d; $(".plusminus").removeClass("disabled"); updateDebug(d); })
+                 .on("mouseout", function (d, i) { thisTree.treeSelection = null; $(".plusminus").addClass("disabled"); updateDebug(null); });
+
+                nodeEnter.append("circle")
+                 .attr("r", 10)
+                 .style("fill", function (d) { return (d.fill ? "url(#" + d.fill + ")" : "#fff"); })
+                 .on("click", this.treeclick);
+
+                nodeEnter.append("text")
+                 .attr("y", function (d) {
+                     return -18;
+                 })
+                 .attr("dy", ".35em")
+                 .attr("text-anchor", "middle")
+                 .text(function (d) { return d.size; })
+                 .style("fill-opacity", 1);
+
+                // Declare the linksâ€¦
+                var link = plot.selectAll("path.treelink")
+                 .data(links, function (d) { return d.source.name + "_" + d.target.name; });
+
+                link.transition().duration(500).attr("d", this.diagonal);
+
+                link.enter().insert("path", "g")
+                    .attr("class", "treelink")
+                    .transition().duration(500)
+                    .attr("d", this.diagonal);
+
+                link.exit().remove();
+
+                if (this.treeSelection) {
+                    updateDebug(this.treeSelection);
+                }
+            }
+
+            this.calculateNeighbours = function () {
+                /// Calculate neighbourhoods
+                var root = this.root;
+                if (Array.isArray(root)) {
+                    root = root[0];
+                }
+
+                var s = root;
+                function ndfs(nnode) {
+                    nnode.neighbourhood = 0;
+                    if (nnode.children && nnode.children.length > 0) {
+                        for (var i = 0; i < nnode.children.length; i++) {
+                            ndfs(nnode.children[i]);
+                            nnode.neighbourhood += nnode.children[i].neighbourhood + nnode.children[i].size;
+                        }
+                    }
+                    else {
+                        nnode.neighbourhood = 0;
+                    }
+                }
+                ndfs(root);
+            }
+
+            this.treeclick = function (d, i) {
+                d3.event.stopPropagation();
+                if (lock)
+                    return;
+                lock = true;
+                if (d3.event.altKey) {
+                    //remove this node and children
+                    if (d.parent && d.parent != "null") {
+                        var removed = [];
+
+                        for (var i = d.parent.children.length - 1; i >= 0; i--) {
+                            if (d.parent.children[i] === d) {
+                                removed.push(d.parent.children[i]);
+                                d.parent.children.splice(i, 1);
+                                gTree.length--;
+                            }
+                        }
+
+                        //cannot remove the root node
+                        if (d.children) {
+                            var stack = [d];
+
+                            var n = stack.pop();
+                            while (n != null && n.children != null && n.children.length > 0) {
+                                gTree.length -= n.children.length;
+                                for (var i = 0; i < n.children.length; i++) {
+                                    removed.push(n.children[i]);
+                                    if (n.children[i].children) {
+                                        stack.push(n.children[i]);
+                                    }
+                                }
+
+                                n.children = null;
+                                n = stack.pop();
+                            }
+                        }
+
+                        gTree.updateTree(gTree.root);
+                        gLinear.removeNodes(removed);
+                    }
+
+                } else {
+                    //add a children
+                    if (!d.children) {
+                        d.children = [];
+                        d.group1 = gTree.length;
+                    }
+
+                    //find next available name
+                    var newName = 0;
+                    var stack = [];
+
+                    var rec = function (n) {
+                        if (Number.isInteger(n.name)) {
+                            name = Math.max(name, n.name);
+                        }
+                    };
+
+                    n = gTree.root;
+                    if (Array.isArray(gTree.root)) {
+                        n = gTree.root[0];
+                        stack.push.apply(stack, gTree.root);
+                    }
+
+                    while (n != null && n != "null") {
+                        if (Number.isInteger(n.name)) {
+                            newName = Math.max(newName, n.name);
+                        }
+
+                        if (n.children != null && n.children.length > 0) {
+                            stack.push.apply(stack, n.children)
+                        }
+
+                        n = stack.pop();
+                    }
+                    newName++;
+
+                    var child = {
+                        name: newName,
+                        parent: d,
+                        group: d.group,
+                        size: 4,
+                        x: 0,
+                        y: 0,
+                        order: gTree.length,
+                        group1: d.group1
+                    };
+
+                    d.children.push(child);
+                    gTree.length++;
+                    gTree.updateTree(gTree.root);
+
+                    gLinear.addNode(child);
+                }
+
+                lock = false;
+            }
+
+            this.svgKeyDown = function () {
+                if (lock)
+                    return;
+                if (this.treeSelection) {
+                    d3.event.stopPropagation();
+                    if (d3.event.keyCode == 107 || d3.event.keyCode == 61) {
+                        // + pressed
+                        this.treeSelection.size++;
+                        this.updateTree(this.root);
+                        gLinear.updateSize();
+                    }
+                    else if ((d3.event.keyCode == 109 || d3.event.keyCode == 173) && this.treeSelection.size > 0) {
+                        // - pressed
+                        this.treeSelection.size--;
+                        this.updateTree(this.root);
+                        gLinear.updateSize();
+                    }
+                    else if (d3.event.keyCode == 79) {
+                        // Enter pressed run polynomial ALGORITHM
+                        lock = true;
+                        this.BestOrder(this.treeSelection);
+                        this.ArrangeAll();
+                        gLinear.updateSize();
+                        this.updateTree(this.root);
+                        lock = false;
+                    }
+                }
+
+                if (d3.event.keyCode == 192) {
+                    // ~ pressed
+                    $(".well.debug").slideToggle();
+                }
+
+                if (d3.event.shiftKey && d3.event.keyCode == 188) {
+                    // ,
+                    if (gLinear.minOrders != null) {
+                        gLinear.moveToNextOrdering(true);
+                    }
+                }
+
+                if (d3.event.shiftKey && d3.event.keyCode == 190) {
+                    // .
+                    if (gLinear.minOrders != null) {
+                        gLinear.moveToNextOrdering(false);
+                    }
+                }
+
+                if (d3.event.shiftKey && d3.event.keyCode == 68) {
+                    // d key
+                    gTree.DynamicCutWidth();
+                }
+
+                if (d3.event.shiftKey && d3.event.keyCode == 84) {
+                    // t
+                    this.ThesholdOrder();
+                    //gLinear.updateSize();
+                    //this.updateTree(this.root);
+                }
+            }
+
+            this.svgKeyUp = function () {
+                d3.event.stopPropagation();
+            }
+
+            //---------------------------------------------------------------------------------------------------//
+            this.BestOrder = function (rootNode) {
+                // This is where the magic happens
+                // rootNode is where to start running
+
+                var stack = [];
+                // Initialize a stack of all the nodes
+                function add(n) {
+                    if (n != null)
+                        stack.push(n);
+                    if (n.children && n.children.length > 0) {
+                        for (var i = 0; i < n.children.length; i++) {
+                            add(n.children[i]);
+                        }
+                    }
+                }
+
+                add(rootNode);
+
+                // Loop for all nodes
+                while ((node = stack.pop()) != null) {
+                    if (node.children == null || node.children.length == 0) {
+                        // this node has no childs it is a simple clique
+                        node.ci = [];
+                        node.fi = -Number.MAX_VALUE;
+                        for (var x = 1; x <= node.size; x++) {
+                            node.ci.push(x * (node.size - x));
+                            if (node.parent && x != node.size) {
+                                node.fi = Math.max(node.fi, x * (node.size - x) + node.parent.size * (x));
+                            }
+                        }
+                        // console.log(node);
+                    }
+                    else {
+                        // this is the root of a subTree
+
+                        // sort children by reverse fi order
+                        var sortedChildren = node.children.slice().sort(function (a, b) { return b.fi - a.fi; });
+
+                        // initialize the array
+                        var n = 0;
+                        for (var i = 0; i < sortedChildren.length; i++) {
+                            n += sortedChildren[i].ci.length;
+                        }
+
+                        var A = [];
+                        for (var x = 0; x <= sortedChildren.length; x++) {
+                            A[x] = [];
+                            for (var y = 0; y <= n ; y++) {
+                                A[x][y] = { Value: null, Order: [] };
+                            }
+                        }
+
+                        // Calculate bitonic ordering
+                        // Ni: einai o trexwn arithmos komvwn pou exoun eksetastei
+                        // i: einai h seira pou eimaste sto pinaka A , diladi i trexousa klika, alla seira 0 einai i kamia klika
+                        // previ: einai deikths gia to for se ola ta paidia tou trexontws komvou
+                        var ni = 0;
+                        for (var previ = 0; previ < sortedChildren.length; previ++) {
+                            var child = sortedChildren[previ];
+                            var i = previ + 1;
+                            ni += child.ci.length;
+                            for (var j = 0; j <= ni; j++) {
+                                // Cut in universal node has j left, ni Total ie ni - j right
+                                var cutUniversal = -Number.MAX_VALUE;
+                                for (var x = 0; x <= node.size; x++) {
+                                    cutUniversal = Math.max(cutUniversal, x * (node.size - x) + x * j + (node.size - x) * (ni - j));
+                                }
+
+                                // Katevasma ston pinaka (Diladi right sto order)
+                                if (A[i - 1][j].Value != null || j == 0) {
+                                    // Cut from this node
+                                    var cutNode = (ni - j - child.ci.length) * node.size;
+                                    var mc = -1 * Number.MAX_VALUE;
+                                    for (var x = 0; x < child.ci.length; x++) {
+                                        mc = Math.max(mc, child.ci[x] + (x + 1) * node.size);
+                                    }
+                                    cutNode += mc;
+                                    A[i][j].Value = Math.max(cutNode, cutUniversal, A[i - 1][j].Value);
+                                    A[i][j].Order = A[i - 1][j].Order.slice();
+                                }
+
+                                // + child size theseis deksia sto pinaka (Diladi Left sto order)
+                                if ((j == child.ci.length) || ((j - child.ci.length) > 0 && A[i - 1][j - child.ci.length].Value != null)) {
+                                    // Cut from Node
+                                    var cutNode = (j - child.ci.length) * node.size;
+                                    var mc = -Number.MAX_VALUE;
+                                    for (var x = 0; x < child.ci.length; x++) {
+                                        mc = Math.max(mc, child.ci[x] + (x + 1) * node.size);
+                                    }
+                                    cutNode += mc;
+
+                                    if (A[i][j].Value != null) {
+                                        // here is tricky , we have a min order from
+                                        // previous case so clique goes right in order
+                                        // and nothing changes
+                                        // or this is minimum so clique goes left in order and we overwrite this cell
+                                        var cValue = Math.max(cutNode, cutUniversal, A[i - 1][j - child.ci.length].Value);
+                                        if (cValue <= A[i][j].Value) {
+                                            A[i][j].Value = cValue;
+                                            A[i][j].Order = A[i - 1][j - child.ci.length].Order.slice();
+                                            A[i][j].Order.push(child);
+                                        }
+                                    }
+                                    else {
+                                        // We see this cell for the first time so it goes right in order
+                                        A[i][j].Value = Math.max(cutNode, cutUniversal, A[i - 1][j - child.ci.length].Value);
+                                        A[i][j].Order = A[i - 1][j - child.ci.length].Order.slice();
+                                        A[i][j].Order.push(child);
+                                    }
+                                }
+                            }
+                        }
+                        // Done we have a minimum
+                        allMinimums = [];
+                        var minValue = Number.MAX_VALUE;
+                        for (var i = 0; i < A[A.length - 1].length; i++) {
+                            if (A[A.length - 1][i].Value != null && A[A.length - 1][i].Value < minValue) {
+                                allMinimums = [A[A.length - 1][i]];
+                                minValue = A[A.length - 1][i].Value;
+                            }
+                            else if (A[A.length - 1][i].Value != null && A[A.length - 1][i].Value == minValue) {
+                                // we have a second minimum push it
+                                allMinimums.push(A[A.length - 1][i])
+                            }
+                        }
+
+                        // We now have many minima , we need to find the best one based on Cut + uLi
+                        for (var m = 0; m < allMinimums.length; m++) {
+                            var minCW = allMinimums[m];
+
+                            // Left Children are in minCW.Order
+                            // Calculate the right Children
+                            var rightChildren = [];
+                            for (var i = 0; i < sortedChildren.length; i++) {
+                                var found = false;
+                                for (var j = 0; j < minCW.Order.length; j++) {
+                                    if (minCW.Order[j] === sortedChildren[i]) {
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                                if (!found) {
+                                    rightChildren.push(sortedChildren[i]);
+                                }
+                            }
+
+                            // Save them for convenience
+                            var left = minCW.Order;
+                            var right = rightChildren;
+
+                            // Now calculate the new cut's at each point of the order
+                            var ci = [];
+                            var leftcut = 0;
+                            for (var i = 0; i < left.length; i++) {
+                                for (var j = 0; j < left[i].ci.length; j++) {
+                                    // new cutwidth is the old cutwidth plus left*universal
+                                    ci.push(left[i].ci[j] + (j + 1 + leftcut) * node.size);
+                                }
+                                leftcut += left[i].ci.length;
+                            }
+
+                            //the universal cut
+                            var rightcut = 0;
+                            for (var i = 0; i < right.length; i++) {
+                                rightcut += right[i].ci.length;
+                            }
+                            for (var i = 1; i <= node.size; i++) {
+                                ci.push(i * (node.size - i) + i * rightcut + (node.size - i) * leftcut);
+                            }
+
+                            // now do the same for the right
+                            // but reversed
+                            rightcut = 0;
+                            var rci = [];
+                            for (var i = 0; i < right.length; i++) {
+                                rci.push(rightcut * node.size);
+                                for (var j = 0; j < right[i].ci.length - 1; j++) {
+                                    // new cutwidth is the old cutwidth plus the right*universal
+                                    rci.push(right[i].ci[j] + (j + 1 + rightcut) * node.size);
+                                }
+                                rightcut += right[i].ci.length;
+                            }
+
+                            rci.reverse();
+                            Array.prototype.push.apply(ci, rci);
+
+                            var uLi = Number.MAX_VALUE;
+                            var uRi = Number.MAX_VALUE;
+                            if (node.parent) {
+                                uRi = 0 + node.parent.size * ci.length;
+                                for (var i = 0; i < ci.length; i++) {
+                                    uLi = Math.min(uLi, ci[i] + (node.parent.size * (i + 1)));
+                                    if (i != ci.length - 1)
+                                        uRi = Math.min(uRi, ci[i] + (node.parent.size * (ci.length - i - 1)));
+                                }
+                            }
+
+                            // check if this is minimum
+                            if (m == 0 || uRi < node.fi) {
+                                node.ci = ci;
+                                node.left = left;
+                                node.right = right;
+                                node.fi = uRi;
+                            }
+                        }
+
+
+                        // now we can calculate fi also
+                        //if (node.parent) {
+                        //    // We might need to reverse this tree
+                        //    var uLi = 0;
+                        //    var uRi = 0;
+                        //    for (var i = 0; i < node.ci.length; i++) {
+                        //        uLi = Math.max(uLi, node.ci[i] + (node.parent.size * (i + 1)));
+                        //        uRi = Math.max(uRi, node.ci[i] + (node.parent.size * (node.ci.length - i - 1)));
+                        //    }
+
+                        //    if (uRi < uLi) {
+                        //        // Reverse of this order is better, we have to reverse it
+                        //        var tmp = node.left;
+                        //        node.left = node.right;
+                        //        node.right = tmp;
+
+                        //        tmp = node.ci.pop();
+                        //        node.ci.reverse();
+                        //        node.ci.push(tmp);
+                        //    }
+
+                        //    node.fi = -Number.MAX_VALUE;
+                        //    for (var i = 0; i < node.ci.length; i++) {
+                        //        node.fi = Math.max(node.fi, node.ci[i] - (node.parent.size * (node.ci.length - i - 1)));
+                        //    }
+                        //}
+                    }
+                }
+            }
+            //---------------------------------------------------------------------------------------------------//
+
+            // Threshold Ordering ------------------------------------------------------------
+            // based on paper http://www.cs.uoi.gr/~charis/files/cutwidth-journal.pdf
+            this.ThesholdOrder = function () {
+                // Generate the simple graph from compact tree representation
+                var simpleNodes = [];
+                var simpleLinks = [];
+                for (var i = 0; i < this.graph.nodes.length; i++) {
+                    for (var s = 0; s < this.graph.nodes[i].size; s++) {
+                        simpleNodes.push({ rank: 0, deg: 0, node: this.graph.nodes[i] });
+
+                        // add links to all previous vertices in this clique
+                        for (var j = 0; j < s; j++) {
+                            simpleLinks.push({ source: simpleNodes[simpleNodes.length - 1], target: simpleNodes[simpleNodes.length - 2 - j], order: simpleLinks.length });
+                        }
+
+                        // add links to all previous cliques
+                        for (var j = 0; j < simpleNodes.length; j++) {
+                            for (var k = 0; k < this.graph.links.length; k++) {
+                                if (this.graph.links[k].source == simpleNodes[j].node && this.graph.links[k].target == this.graph.nodes[i]) {
+                                    simpleLinks.push({ source: simpleNodes[j], target: simpleNodes[simpleNodes.length - 1] });
+                                } else if (this.graph.links[k].target == simpleNodes[j].node && this.graph.links[k].source == this.graph.nodes[i]) {
+                                    simpleLinks.push({ target: simpleNodes[j], source: simpleNodes[simpleNodes.length - 1] });
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Calculate ranks and degrees of each vertex
+                for (var i = 0; i < simpleLinks.length; i++) {
+                    simpleLinks[i].source.rank += 1;
+                    simpleLinks[i].target.rank += 1;
+
+                    simpleLinks[i].source.deg += 1;
+                    simpleLinks[i].target.deg += 1;
+                }
+
+                var nodes = simpleNodes.slice();
+                nodes.sort(function (a, b) { return a.order - b.order });
+
+                // run the algorithm
+                var n = nodes.length;
+                for (var i = 0; i < n; i++) {
+                    var ui = 0;
+                    for (var j = 0; j < nodes.length; j++) {
+                        if (nodes[j].rank < nodes[ui].rank) {
+                            ui = j;
+                        } else if (nodes[j].rank == nodes[ui].rank && (nodes[j].deg > nodes[ui].deg)) {
+                            ui = j;
+                        }
+                    }
+
+                    nodes[ui].order = i;
+                    for (var k = 0; k < simpleLinks.length; k++) {
+                        if (simpleLinks[k].source == nodes[ui]) {
+                            simpleLinks[k].target.rank -= 2;
+                        } else if (simpleLinks[k].target == nodes[ui]) {
+                            simpleLinks[k].source.rank -= 2;
+                        }
+                    }
+                    nodes.splice(ui, 1);
+                }
+
+                // Go back to compact tree representation using Lemma 3.3 () by gathering each vertex to the middle one of
+                // each clique
+
+                for (var i = 0; i < this.graph.nodes.length; i++) {
+                    this.graph.nodes[i].order = -1;
+                    this.graph.nodes[i].HaveSeenMiddleVertex = 0;
+                }
+
+                simpleNodes.sort(function (a, b) { return a.order - b.order });
+                var order = 0;
+                for (var i = 0; i < simpleNodes.length; i++) {
+                    if (simpleNodes[i].node.size == 1) {
+                        simpleNodes[i].node.order = order;
+                        order++;
+                    }
+                    else if (simpleNodes[i].node.HaveSeenMiddleVertex < Math.floor(simpleNodes[i].node.size / 2)) {
+                        // we need to find the middle one
+                        simpleNodes[i].node.HaveSeenMiddleVertex++;
+                        if (simpleNodes[i].node.HaveSeenMiddleVertex == Math.floor(simpleNodes[i].node.size / 2)) {
+                            simpleNodes[i].node.order = order;
+                            order++;
+                        }
+                    }
+                }
+
+                gLinear.updateSize();
+                this.updateTree(this.root);
+            }
+
+            //--------------------------------------
+            this.ArrangeAll = function () {
+                n = gTree.root;
+                if (Array.isArray(gTree.root)) {
+                    n = gTree.root[0];
+                }
+
+                var count = 0;
+                function dfs(node, isRight) {
+                    if (node != null) {
+                        var thisleft = node.left ? node.left : node.children;
+                        var thisright = node.right ? node.right : null;
+
+                        if (isRight) {
+                            var tmp = thisright;
+                            thisright = thisleft;
+                            thisleft = tmp;
+                        }
+
+                        // fix the left
+                        if (thisleft != null) {
+                            for (var i = 0; i < thisleft.length; i++) {
+                                dfs(thisleft[i], false);
+                            }
+                        }
+
+                        // fix this
+                        node.order = count;
+                        count++;
+
+                        // fix right children
+                        if (thisright != null && thisright.length > 0) {
+                            for (var i = thisright.length - 1; i >= 0; i--) {
+                                dfs(thisright[i], true);
+                            }
+                        }
+                    }
+                }
+
+                dfs(n, false);
+            }
+
+
+            /**
+            * Functions for dynamic programming algorithm according to
+            * [A Note on exact Algorithms for Vertex Ordering 2011]
+            * http://users.uoa.gr/~sedthilk/papers/notexact.pdf
+            * The function returning the cutwidth of a specific order
+            **/
+            this.fCutWidth = function (S, v) {
+                var links = gLinear.graph.links;
+
+                var newS = new Set(S);
+                var iS = new Set(S);
+                newS.add(v);
+                var cut = 0;
+                var left = 0, right = 0;
+                for (var i = 0; i < links.length; i++) {
+                    if ((iS.has(links[i].source) && !newS.has(links[i].target)) ||
+                        (!newS.has(links[i].source) && iS.has(links[i].target))) {
+
+                        cut += links[i].source.size * links[i].target.size;
+                    }
+
+                    if (links[i].source == v) {
+                        if (iS.has(links[i].target)) {
+                            left += links[i].target.size;
+                        }
+                        else {
+                            right += links[i].target.size;
+                        }
+                    }
+                    else if (links[i].target == v) {
+                        if (iS.has(links[i].source)) {
+                            left += links[i].source.size;
+                        }
+                        else {
+                            right += links[i].source.size;
+                        }
+                    }
+                }
+
+                var insideCut = 0;
+                for (var i = 0; i <= v.size; i++) {
+                    insideCut = Math.max(insideCut, -(i * i) + i * (v.size + right - left) + v.size * left);
+                }
+
+                return cut + insideCut;
+            }
+
+            this.hashArray = function (a) {
+                if (!(a instanceof Array))
+                    return '';
+
+                var copy = a.slice();
+
+                copy.sort(function (a, b) {
+                    if (a.name < b.name) return -1;
+                    if (a.name > b.name) return 1;
+                    return 0;
+                });
+
+                var hash = '';
+                for (var i = 0; i < copy.length; i++) {
+                    hash += copy[i].name;
+                }
+
+                return hash;
+            }
+
+            this.DynamicCutWidth = function () {
+                // Create an array 0,1,....this.length;
+                var A = {};
+                var nodes = gLinear.graph.nodes;
+                for (var i = 1; i <= nodes.length; i++) {
+                    var comb = k_combinations(nodes, i);
+                    for (var j = 0; j < comb.length; j++) {
+                        var minW = { Value: Number.MAX_VALUE, Order: [] };
+                        for (var w = 0; w < comb[j].length; w++) {
+                            // build the S \ {w}
+                            var smw = new Array();
+                            for (var k = 0; k < comb[j].length; k++) {
+                                if (k != w) {
+                                    smw.push(comb[j][k]);
+                                }
+                            }
+
+                            var hashp = this.hashArray(smw);
+                            var f = Math.max(this.fCutWidth(smw, comb[j][w]), (A[hashp]) ? A[hashp].Value : 0);
+                            if (f < minW.Value) {
+                                minW.Value = f;
+                                if (A[hashp]) {
+                                    minW.Order = A[hashp].Order.slice();
+                                    minW.Order.push(comb[j][w]);
+                                }
+                                else {
+                                    minW.Order = [comb[j][w]];
+                                }
+                            }
+                            //minW = Math.min(minW.Value, f);
+                        }
+
+                        A[this.hashArray(comb[j])] = minW;
+                    }
+                }
+
+                for (var i = 0; i < A[this.hashArray(nodes)].Order.length; i++) {
+                    A[this.hashArray(nodes)].Order[i].order = i;
+                }
+
+                if (this.graph) {
+                    this.graph.minimumCutwidth = A[this.hashArray(nodes)].Value;
+                }
+
+                gLinear.updateSize();
+
+                return A[this.hashArray(nodes)];
+            }
+        }
+
+        function LinearGraph() {
+            this.length = 0;
+            this.radius = 10;
+            this.xscale = null;
+            this.rscale = null;
+            this.radians = null;
+
+            this.graph = null;
+
+            //for min Orderings from import
+            this.minOrders = null;
+            this.minOrderIndex = 0;
+
+            this.cuts = [];
+
+            this.addNode = function (child) {
+                // d must have correct stuff
+                this.length++;
+
+                this.graph.nodes.push(child);
+                // we need to add the links too
+                var t = child;
+                while (t.parent != null && t.parent != "null") {
+                    this.graph.links.push({ source: child, target: t.parent });
+                    t = t.parent;
+                }
+
+                this.initialize(this.graph);
+            }
+
+            this.updateSize = function () {
+                this.initialize(this.graph);
+            }
+
+            this.moveToNextOrdering = function (prev) {
+                var changed = false;
+                if (prev == true) {
+                    if (this.minOrderIndex > 0) {
+                        this.minOrderIndex--;
+                        changed = true;
+                    }
+                }
+                else {
+                    if (this.minOrderIndex < this.minOrders.length - 1) {
+                        this.minOrderIndex++;
+                        changed = true;
+                    }
+                }
+
+                console.log(this.minOrderIndex);
+                if (changed) {
+                    var _this = this;
+                    this.graph.nodes.forEach(function (d, i) {
+                        d.order = _this.minOrders[_this.minOrderIndex][i];
+                    });
+
+                    this.initialize(this.graph);
+                    gTree.updateTree(gTree.root);
+                }
+
+            }
+
+            this.removeNodes = function (nodes) {
+                this.length -= nodes.length;
+
+                for (var n = 0; n < nodes.length; n++) {
+                    //remove links
+                    for (var i = this.graph.links.length - 1; i >= 0 ; i--) {
+                        if (this.graph.links[i].source === nodes[n] || this.graph.links[i].target === nodes[n]) {
+                            this.graph.links.splice(i, 1);
+                        }
+                    }
+
+                    // now remove node
+                    for (var i = this.graph.nodes.length - 1; i >= 0 ; i--) {
+                        if (this.graph.nodes[i] === nodes[n]) {
+                            var o = this.graph.nodes[i].order;
+                            this.graph.nodes.splice(i, 1);
+
+                            for (var j = 0; j < this.graph.nodes.length; j++) {
+                                if (this.graph.nodes[j].order > o)
+                                    this.graph.nodes[j].order--;
+                            }
+                        }
+                    }
+                }
+
+                this.initialize(this.graph);
+            }
+
+            this.getXY = function (datum) {
+                return { x: this.xscale(datum.order), y: yfixed };
+            }
+
+            this.initialize = function (graph) {
+                this.length = graph.nodes.length;
+                this.graph = graph;
+
+                // check if we have many orderings
+                if (graph.order && graph.order.length > 0 && graph.order[0].length > 0) {
+                    this.minOrders = graph.order.slice();
+                    this.minOrderIndex = 0;
+                    this.graph.order = graph.order[0];
+                }
+
+                this.radius = Math.max(4, Math.min(15, (width / (this.length)) - pad));
+
+                // must be done AFTER links are fixed
+                this.rescale();
+
+                // calculate pixel location for each node
+                var that = this;
+                this.graph.nodes.forEach(function (d, i) {
+                    if (d.order != null) {
+                        d.r = that.rscale(d.size);
+                    } else {
+                        if (that.graph.order && that.graph.order.length >= that.graph.nodes.length) {
+                            d.order = that.graph.order[i];
+                        }
+                        else {
+                            d.order = i;
+                        }
+                        d.r = that.rscale(d.size);
+                    }
+                });
+
+                // draw links first, so nodes appear on top
+                this.drawLinks();
+
+                // draw nodes last
+                this.drawNodes();
+
+                var cutLines = []
+                for (var i = 0; i < this.graph.nodes.length ; i++) {
+                    cutLines.push(i + 0.5);
+                }
+
+                var cutlines = d3.select("#plot").selectAll(".cuts")
+                    .data(cutLines);
+
+                cutlines.transition().duration(500).attr("x1", function (d, i) { return that.xscale(i + 0.5); })
+                    .attr("x2", function (d, i) { return that.xscale(i + 0.5); })
+                    .attr("y1", yfixed - 50)
+                    .attr("y2", height);
+
+                cutlines.enter()
+                    .append("line")
+                    .attr("class", "cuts")
+                    .attr("x1", function (d, i) { return that.xscale(i + 0.5); })
+                    .attr("x2", function (d, i) { return that.xscale(i + 0.5); })
+                    .attr("y1", yfixed - 50)
+                    .attr("y2", height);
+
+                cutlines.exit().remove();
+
+                d3.select("#plot").selectAll(".maxcut").data([0]).enter().append("text").attr("id", "max").attr("class", "maxcut").text(function (d) { return d; }).attr("x", width * 0.8 / 2).attr("y", pad + 10);
+                d3.select("#plot").selectAll(".maxcut").data([0]).exit().remove();
+
+                this.updateCuts();
+
+
+                // draw bitonic value
+                var tooltipsb = d3.select("#plot").selectAll(".tooltipb").data(this.graph.nodes, function (d) { return d.name; });
+
+                tooltipsb.transition().duration(500).text(function (d) { return d.bitonic; })
+                                .attr("x", function (d) { return that.getXY(d).x; })
+                                .attr("y", function (d) { return that.getXY(d).y; })
+                                .attr("dy", this.radius * 1.5)
+
+                tooltipsb.enter().append("text")
+                                .text(function (d) { return d.bitonic; })
+                                .attr("x", function (d) { return that.getXY(d).x; })
+                                .attr("y", function (d) { return that.getXY(d).y; })
+                                .attr("dy", this.radius * 1.5)
+                                .attr("circle", function (d) { return d.name; })
+                                .attr("text-anchor", "middle")
+                                .attr("class", "tooltipb");
+
+                tooltipsb.exit().remove();
+
+
+
+                var cutScaler = d3.scale.linear()
+                                 .domain([d3.min(this.cuts), d3.max(this.cuts)])
+                                 .range([0, 1]);
+
+                colorText = d3.interpolateHsl(d3.rgb("#dadaeb"), d3.rgb("#756bb1"));
+
+                var cutTexts = d3.select("#plot").selectAll(".cutwidths")
+                .data(this.graph.nodes, function (d) { return d.name; });
+
+                cutTexts.transition().duration(500)
+                .text(function (d, i) { return d.cut; })
+                .attr("x", function (d, i) { return that.xscale(d.order + 0.5); })
+                .attr("y", height - 120)
+                .attr("text-anchor", "end")
+                .attr("fill", function (d, i) { return colorText(cutScaler(d.cut)); });
+
+                cutTexts.enter()
+                .append("text")
+                .attr("class", "cutwidths")
+                .text(function (d, i) { return d.cut; })
+                .attr("x", function (d, i) { return that.xscale(d.order + 0.5); })
+                .attr("y", height - 120)
+                .attr("text-anchor", "end")
+                .attr("fill", function (d, i) { return colorText(cutScaler(d.cut)); });
+
+                cutTexts.exit().remove();
+
+                this.updateHalfLine();
+                // create arrow lines
+                this.updateArrows();
+
+                updateDebug(null);
+            }
+
+            this.updateHalfLine = function () {
+                var nodesCopy = this.graph.nodes.slice();
+                nodesCopy.sort(function (a, b) { return a.order - b.order });
+
+                var size = 0;
+                for (var i = 0; i < nodesCopy.length; i++) {
+                    size += nodesCopy[i].size;
+                }
+
+                var that = this;
+
+                var half = Math.floor(size / 2.0);
+                for (var i = 0; i < nodesCopy.length; i++) {
+                    half -= nodesCopy[i].size;
+                    if (half <= 0) {
+                        var halfline = d3.select("#plot").selectAll(".halfline")
+                            .data([half == 0 ? nodesCopy[i].order + 0.5 : nodesCopy[i].order]);
+
+
+                        halfline.transition().duration(500)
+                            .attr("x1", function (d, i) { return that.xscale(d); })
+                            .attr("x2", function (d, i) { return that.xscale(d); });
+
+                        halfline.enter()
+                            .append("line")
+                            .attr("class", "halfline")
+                            .attr("x1", function (d, i) { return that.xscale(d); })
+                            .attr("x2", function (d, i) { return that.xscale(d); })
+                            .attr("y1", yfixed - 80)
+                            .attr("y2", yfixed + 50);
+                        break;
+                    }
+                }
+
+            }
+
+            this.rescale = function () {
+                // used to scale node index to x position\
+                var dm = [0, this.graph.nodes.length - 1 + 0.5]
+                if (this.graph.nodes.length == 1) {
+                    dm = [0, 0];
+                }
+
+                this.xscale = d3.scale.linear()
+                    .domain(dm)
+                    .range([pad, window.innerWidth * 0.8 - pad]);
+
+                this.rscale = d3.scale.linear()
+                    .domain([0, d3.max(this.graph.nodes, function (d) { return d.size; })])
+                    .range([4, this.radius]);
+
+                // scale to generate radians (just for lower-half of circle)
+                this.radians = d3.scale.linear()
+                    .range([Math.PI / 2, 3 * Math.PI / 2]);
+            }
+
+            this.updateArrows = function () {
+                //var that = this;
+                //var arrowsRight = d3.select("#plot").selectAll(".arrowR").data(this.graph.nodes);
+                //arrowsRight.transition().duration(500)
+                //        .attr("x1", function (d) { return that.getXY(d).x; })
+                //        .attr("y1", function (d) { return that.getXY(d).y + that.radius * 2; })
+                //        .attr("x2", function (d) { return that.getXY(d).x + that.radius; })
+                //        .attr("y2", function (d) { return that.getXY(d).y + that.radius * 2; })
+                //        .attr("marker-end", function (d) { return (d.moveRight ? "url(#arrow)" : null); });
+
+                //arrowsRight.enter()
+                //        .append("svg:line")
+                //        .attr("x1", function (d) { return that.getXY(d).x; })
+                //        .attr("y1", function (d) { return that.getXY(d).y + that.radius * 2; })
+                //        .attr("x2", function (d) { return that.getXY(d).x + that.radius; })
+                //        .attr("y2", function (d) { return that.getXY(d).y + that.radius * 2; })
+                //        .attr("class", "arrowR")
+                //        .attr("marker-end", function (d) { return (d.moveRight ? "url(#arrow)" : null); });
+                //arrowsRight.exit().remove();
+
+                //var arrowsLeft = d3.select("#plot").selectAll(".arrowL").data(this.graph.nodes);
+                //arrowsLeft.transition().duration(500)
+                //        .attr("x1", function (d) { return that.getXY(d).x; })
+                //        .attr("y1", function (d) { return that.getXY(d).y + that.radius * 2; })
+                //        .attr("x2", function (d) { return that.getXY(d).x - that.radius; })
+                //        .attr("y2", function (d) { return that.getXY(d).y + that.radius * 2; })
+                //        .attr("marker-end", function (d) { return (d.moveLeft ? "url(#arrow)" : null); });
+
+                //arrowsLeft.data(this.graph.nodes).enter().append("svg:line")
+                //        .attr("x1", function (d) { return that.getXY(d).x; })
+                //        .attr("y1", function (d) { return that.getXY(d).y + that.radius * 2; })
+                //        .attr("x2", function (d) { return that.getXY(d).x - that.radius; })
+                //        .attr("y2", function (d) { return that.getXY(d).y + that.radius * 2; })
+                //        .attr("class", "arrowL")
+                //        .attr("marker-end", function (d) { return (d.moveLeft ? "url(#arrow)" : null); });
+                //arrowsLeft.exit().remove();
+            }
+
+            this.updateCuts = function () {
+                this.cuts = [];
+
+                var that = this;
+
+                var nodeArray = new Array(this.length);
+
+                d3.selectAll(".node").each(function (node, i) {
+                    var independentCut = 0;
+                    var left = 0;
+                    var right = 0;
+                    var j = node.order;
+                    nodeArray[node.order] = node;
+
+                    d3.select("#plot").selectAll(".link")
+                    .each(function (d, i) {
+                        if ((d.source.order > j && d.target.order < j) || (d.source.order < j && d.target.order > j)) {
+                            independentCut += d.source.size * d.target.size;
+                        }
+                        else if (d.source.order == j) {
+                            if (d.target.order < j) {
+                                left += d.target.size;
+                            }
+                            else
+                                right += d.target.size;
+                        }
+                        else if (d.target.order == j) {
+                            if (d.source.order < j) {
+                                left += d.source.size;
+                            }
+                            else
+                                right += d.source.size;
+                        }
+                    });
+
+                    if (node != null) {
+                        var cut = 0;
+                        var fi = Number.MIN_VALUE;
+                        var fmaxes = [];
+
+                        for (var pp = 0; pp <= node.size; pp++) {
+                            // Calculate cut
+                            cut = Math.max(cut, pp * (node.size - pp) + pp * right + (node.size - pp) * left);
+
+                            // Calculate fi or gi
+                            if (node.order != that.graph.nodes[0].order) {
+                                var value = 0;
+                                if (node.order < that.graph.nodes[0].order) {
+                                    // if is left of U
+                                    value = pp * (node.size - pp) + pp * (right - that.graph.nodes[0].size) + (node.size - pp) * left + that.graph.nodes[0].size * pp;
+                                }
+                                else if (node.order > that.graph.nodes[0].order) {
+                                    //is right of U
+                                    value = pp * (node.size - pp) + pp * right + (node.size - pp) * (left - that.graph.nodes[0].size) + that.graph.nodes[0].size * (node.size - pp);
+                                }
+                                if (value > fi) {
+                                    fmaxes = [];
+                                    fmaxes.push(pp);
+                                    fi = value;
+                                }
+                            }
+                        }
+                        that.cuts.push(independentCut + cut);
+                        node.cut = independentCut + cut;
+
+                        node.bitonic = (right - left - node.size) / 2;
+
+                        node.nLeft = left;
+                        node.nRight = right;
+
+                        // Calculate the arrows
+                        node.moveLeft = false;
+                        node.moveRight = false;
+                        if (node.order < that.graph.nodes[0].order) {
+                            if (fmaxes.length == 1) {
+                                if (fmaxes[0] > node.size - fmaxes[0]) {
+                                    // Li > Ri
+                                    node.moveRight = true;
+                                }
+                                else if (fmaxes[0] < node.size - fmaxes[0]) {
+                                    node.moveLeft = true;
+                                }
+                            }
+                        }
+                        else if (node.order > that.graph.nodes[0].order) {
+                            if (fmaxes.length == 1) {
+                                if (fmaxes[0] > node.size - fmaxes[0]) {
+                                    // Li > Ri
+                                    node.moveLeft = true;
+                                }
+                                else if (fmaxes[0] < node.size - fmaxes[0]) {
+                                    node.moveRight = true;
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        that.cuts.push(0);
+                    }
+                });
+
+                //for (var i = 0; i < nodeArray.length; i++) {
+                //    //nodeArray[i].moveLeft = false;
+                //    //nodeArray[i].moveRight = false;
+
+                //    //var isLeftN = false;
+                //    //var isRightN = false;
+
+                //    //this.graph.links.forEach(function (link, LinkIndex) {
+                //    //    if (i > 0) {
+                //    //        if ((link.source.order == nodeArray[i].order && link.target.order == nodeArray[i - 1].order)
+                //    //            || (link.source.order == nodeArray[i - 1].order && link.target.order == nodeArray[i].order)) {
+                //    //            isLeftN = true;
+                //    //        }
+                //    //    }
+
+                //    //    if (i < nodeArray.length - 1) {
+                //    //        if ((link.source.order == nodeArray[i].order && link.target.order == nodeArray[i + 1].order)
+                //    //            || (link.source.order == nodeArray[i + 1].order && link.target.order == nodeArray[i].order)) {
+                //    //            isRightN = true;
+                //    //        }
+                //    //    }
+                //    //});
+
+                //    //if (i > 0) {
+                //    //    var Dthis = isLeftN ? nodeArray[i].nRight - nodeArray[i].nLeft + nodeArray[i - 1].size : nodeArray[i].size * (nodeArray[i].nRight - nodeArray[i].nLeft);
+                //    //    var DLeft = isLeftN ? nodeArray[i - 1].nRight - nodeArray[i - 1].nLeft - nodeArray[i].size : nodeArray[i - 1].size * (nodeArray[i - 1].nRight - nodeArray[i - 1].nLeft);
+                //    //    nodeArray[i].moveLeft = (Dthis <= DLeft);
+                //    //}
+
+                //    //if (i < nodeArray.length - 1) {
+                //    //    var Dthis = isRightN ? nodeArray[i].nRight - nodeArray[i].nLeft - nodeArray[i + 1].size : nodeArray[i].size * (nodeArray[i].nRight - nodeArray[i].nLeft);
+                //    //    var DRight = isRightN ? nodeArray[i + 1].nRight - nodeArray[i + 1].nLeft + nodeArray[i].size : nodeArray[i + 1].size * (nodeArray[i + 1].nRight - nodeArray[i + 1].nLeft);
+                //    //    nodeArray[i].moveRight = (DRight <= Dthis);
+                //    //}
+                //}
+
+                var txt = Math.max.apply(Math, that.cuts);
+                if (this.graph.minimumCutwidth) {
+                    txt += " (" + this.graph.minimumCutwidth + ")";
+                }
+                d3.select("#max").text(txt).attr("x", width * 0.8 / 2).attr("y", pad + 10);
+                console.log(txt);
+            }
+
+            // Draws nodes on plot
+            this.drawNodes = function () {
+                // used to assign nodes color by group
+                color = d3.scale.category20();
+
+                var that = this;
+
+                var drag = d3.behavior.drag()
+                    .origin(function (d) { return d; })
+                    .on("dragstart", function (d) { that.dragstart.call(that, this, d); })
+                    .on("drag", function (d) { that.dragmove.call(that, d); })
+                    .on("dragend", function (d) { that.dragend.call(that, this, d); });
+
+                var node = d3.select("#plot").selectAll(".node")
+                    .data(this.graph.nodes, function (d) { return d.name; });
+
+                node.transition().duration(500).attr("cx", function (d, i) { return that.getXY(d).x; })
+                    .attr("cy", function (d, i) { return that.getXY(d).y; })
+                    .attr("r", function (d, i) { return that.rscale(d.size); })
+                    .style("fill", function (d, i) { return color(d.group1); })
+                    .style("stroke", function (d, i) { if (d.isu == 1) { return "#000"; } });
+
+
+                node.enter()
+                    .append("circle")
+                    .attr("class", "node")
+                    .attr("id", function (d, i) { return d.name; })
+                    .attr("cx", function (d, i) { return that.getXY(d).x; })
+                    .attr("cy", function (d, i) { return that.getXY(d).y;; })
+                    .attr("r", function (d, i) { return that.rscale(d.size); })
+                    .style("fill", function (d, i) { return color(d.group1); })
+                    .style("stroke", function (d, i) { if (d.isu == 1) { return "#000"; } })
+                    .on("mouseover", this.mouseover)
+                    .call(drag);
+
+                node.exit().remove();
+
+                // draw size texts
+                var tooltips = d3.select("#plot").selectAll(".tooltip").data(this.graph.nodes, function (d) { return d.name; });
+
+                tooltips.transition().duration(500).text(function (d) { return d.size; })
+                                .attr("x", function (d) { return that.getXY(d).x; })
+                                .attr("y", function (d) { return that.getXY(d).y; })
+                                .attr("dy", -this.radius * 1)
+
+                tooltips.enter().append("text")
+                                .text(function (d) { return d.size; })
+                                .attr("x", function (d) { return that.getXY(d).x; })
+                                .attr("y", function (d) { return that.getXY(d).y; })
+                                .attr("dy", -this.radius * 1)
+                                .attr("circle", function (d) { return d.name; })
+                                .attr("class", "tooltip");
+
+                tooltips.exit().remove();
+                //fix tooltips offset
+                d3.select("#plot").selectAll(".tooltip").each(function (d) {
+                    var offset = this.getBBox().width / 2;
+
+                    if ((d.x - offset) < 0) {
+                        d3.select(this).attr("text-anchor", "start");
+                        d3.select(this).attr("dx", -radius);
+                    }
+                    else if ((d.x + offset) > (width - margin)) {
+                        d3.select(this).attr("text-anchor", "end");
+                        d3.select(this).attr("dx", radius);
+                    }
+                    else {
+                        d3.select(this).attr("text-anchor", "middle");
+                        d3.select(this).attr("dx", 0);
+                    }
+                });
+            }
+
+            this.mouseover = function (d, i) {
+
+                d3.selectAll(".treenode").each(function (c, i) {
+                    if (c.name == d.name) {
+                        d3.select(this).select("circle").style("stroke", "red");
+                    }
+                    else {
+                        d3.select(this).select("circle").style("stroke", "");
+                    }
+                });
+
+                gTree.treeSelection = d;
+            }
+
+            this.moveTo = function (d, newIndex) {
+                var oldIndex = d.order;
+                var that = this;
+                var texts = [];
+
+                d3.select("#plot").selectAll(".node")
+                .each(function (x, i) {
+                    if (x.order > oldIndex && x.order <= newIndex) {
+                        x.order -= 1;
+                    }
+                    else if (x.order < oldIndex && x.order >= newIndex) {
+                        x.order += 1;
+                    }
+                });
+
+                d.order = newIndex;
+
+                d3.select("#plot").selectAll(".node")
+                   .transition().duration(500)
+                   .attr("cx", function (dd, i) { return that.getXY(dd).x; })
+                   .each(function (x, i) {
+                       texts[x.order] = x.size;
+                   }
+                );
+
+                this.updateHalfLine();
+
+                this.drawLinks();
+
+                this.updateCuts();
+
+                var cutScaler = d3.scale.linear()
+                            .domain([d3.min(this.cuts), d3.max(this.cuts)])
+                            .range([0, 1]);
+
+                d3.select("#plot").selectAll(".cutwidths").data(this.graph.nodes, function (d) { return d.name; })
+                    .text(function (d, i) { return d.cut; })
+                    .attr("x", function (d, i) { return that.xscale(d.order + 0.5); })
+                    .attr("y", height - 120)
+                    .attr("text-anchor", "end")
+                    .attr("fill", function (d, i) { return colorText(cutScaler(d.cut)); });
+
+
+                var tooltips = d3.select("#plot").selectAll(".tooltip").data(this.graph.nodes, function (d) { return d.name; });
+
+                tooltips.transition().duration(500).text(function (d) { return d.size; })
+                       .attr("x", function (d) { return that.getXY(d).x; })
+                       .attr("y", function (d) { return that.getXY(d).y; })
+                       .attr("dy", -this.radius * 1);
+
+                var tooltipsb = d3.select("#plot").selectAll(".tooltipb").data(this.graph.nodes, function (d) { return d.name; });
+
+                tooltipsb.transition().duration(500).text(function (d) { return d.bitonic; })
+                       .attr("x", function (d) { return that.getXY(d).x; })
+
+                this.updateArrows();
+
+                gTree.updateTree(gTree.root);
+            }
+
+            this.dragmove = function (d) {
+                if (lock)
+                    return;
+                if (this.xscale) {
+                    var mousex = d3.mouse(d3.select("#plot").node())[0];
+                    var newIndex = Math.round(this.xscale.invert(mousex));
+
+                    if (newIndex < 0)
+                        newIndex = 0;
+                    if (newIndex > this.length - 1)
+                        newIndex = this.length - 1;
+
+                    if (newIndex != d.order) {
+                        lock = true;
+                        this.moveTo(d, newIndex);
+                        lock = false;
+                    }
+                }
+            }
+
+            this.dragstart = function (d3node, d) {
+                d3.select(d3node)
+                 .attr("r", d.r * 1.5)
+                 .attr("cy", yfixed - 50);
+            }
+
+            this.dragend = function (d3node, d) {
+                d3.select(d3node)
+                 .attr("r", d.r)
+                 .attr("cy", yfixed);
+
+                //gTree.updateTree(gTree.root);
+            }
+
+
+            // Draws nice arcs for each link on plot
+            this.drawLinks = function () {
+
+                var that = this;
+                // path generator for arcs (uses polar coordinates)
+                arc = d3.svg.line.radial()
+                    .interpolate("basis")
+                    .tension(0)
+                    .angle(function (d) { return that.radians(d); });
+
+                // add links
+                var linksSel = d3.select("#plot").selectAll(".link")
+                    .data(this.graph.links);
+
+                linksSel
+                .attr("transform", function (d, i) {
+                    // arc will always be drawn around (0, 0)
+                    // shift so (0, 0) will be between source and target
+                    var xshift = that.getXY(d.source).x + (that.getXY(d.target).x - that.getXY(d.source).x) / 2;
+                    var yshift = that.getXY(d).y;
+                    return "translate(" + xshift + ", " + yshift + ")";
+                })
+                    .attr("d", function (d, i) {
+                        // get x distance between source and target
+                        var xdist = Math.abs(that.getXY(d.source).x - that.getXY(d.target).x);
+
+                        // set arc radius based on x distance
+                        arc.radius(xdist / 2);
+
+                        // want to generate 1/3 as many points per pixel in x direction
+                        var points = d3.range(0, Math.ceil(xdist / 3));
+
+                        // set radian scale domain
+                        that.radians.domain([0, points.length - 1]);
+
+                        // return path for arc
+                        return arc(points);
+                    });
+
+                linksSel.exit().remove();
+
+                linksSel.enter()
+                    .append("path")
+                    .attr("class", "link")
+                    .attr("transform", function (d, i) {
+                        // arc will always be drawn around (0, 0)
+                        // shift so (0, 0) will be between source and target
+                        var xshift = that.getXY(d.source).x + (that.getXY(d.target).x - that.getXY(d.source).x) / 2;
+                        var yshift = that.getXY(d).y;
+                        return "translate(" + xshift + ", " + yshift + ")";
+                    })
+                    .attr("d", function (d, i) {
+                        // get x distance between source and target
+                        var xdist = Math.abs(that.getXY(d.source).x - that.getXY(d.target).x);
+
+                        // set arc radius based on x distance
+                        arc.radius(xdist / 2);
+
+                        // want to generate 1/3 as many points per pixel in x direction
+                        var points = d3.range(0, Math.ceil(xdist / 3));
+
+                        // set radian scale domain
+                        that.radians.domain([0, points.length - 1]);
+
+                        // return path for arc
+                        return arc(points);
+                    });
+            }
+        }
+
+        var gTree = null;
+        var gLinear = null;
+
+        $(document).ready(function () {
+            arcDiagram({ "nodes": [{ "name": "n0", "parent": null, "size": 4 }], "links": [] });
+            window.addEventListener('resize', function (event) {
+                margin = 80;            // amount of margin around plot area
+                width = window.innerWidth;           // width of svg image
+                height = window.innerHeight - margin;           // height of svg image
+
+                pad = margin / 3;       // actual padding amount
+                radius = 10;             // fixed node radius
+                yfixed = pad + radius + 80;  // y position for all nodes
+
+                d3.select("svg").attr("width", window.innerWidth).attr("height", height);
+
+                plot.attr("transform", "translate(" + window.innerWidth * 0.8 + "," + pad + ")");
+
+                gTree.resizeTree();
+                gLinear.updateSize();
+            });
+        });
+
+        // Draws an arc diagram for the provided undirected graph
+        function arcDiagram(graph) {
+            // create svg image
+            gGraph = graph;
+
+            d3.select("svg")
+               .remove();
+            var svg = d3.select("body")
+                .append("svg")
+                .attr("id", "arc")
+                .attr("width", window.innerWidth)
+                .attr("height", height);
+
+            var leftgrad = svg.append("defs").append("linearGradient").attr("id", "leftgrad")
+                            .attr("x1", "0%").attr("x2", "100%").attr("y1", "0%").attr("y2", "0%");
+            leftgrad.append("stop").attr("offset", "50%").style("stop-color", "#37BC9B");
+            leftgrad.append("stop").attr("offset", "50%").style("stop-color", "#fff");
+
+            var rightgrad = svg.append("defs").append("linearGradient").attr("id", "rightgrad")
+                            .attr("x1", "100%").attr("x2", "0%").attr("y1", "0%").attr("y2", "0%");
+            rightgrad.append("stop").attr("offset", "50%").style("stop-color", "#37BC9B");
+            rightgrad.append("stop").attr("offset", "50%").style("stop-color", "#fff");
+
+            svg.append("defs").append("svg:marker")
+               .attr("id", "arrow")
+               .attr("viewBox", "0 0 10 10")
+               .attr("refY", 5)
+               .attr("refX", 1)
+               .attr("markerUnits", "strokeWidth")
+               .attr("markerWidth", 6)
+               .attr("markerHeight", 5)
+               .attr("orient", "auto")
+               .append("polyline")
+               .attr("points", "0,0 10,5 0,10 1,5")
+               .attr("fill", "#c00");
+
+
+            // create plot area within svg
+            plotLinear = svg.append("g")
+                .attr("id", "plot")
+                .attr("transform", "translate(" + pad + ", " + pad + ")");
+
+            // fix graph links to map to objects instead of indices
+            graph.links.forEach(function (d, i) {
+                d.source = isNaN(d.source) ? d.source : graph.nodes[d.source];
+                d.target = isNaN(d.target) ? d.target : graph.nodes[d.target];
+            });
+
+            plot = svg
+                .append("g")
+                .attr("id", "tree")
+                .attr("transform", "translate(" + window.innerWidth * 0.8 + "," + pad + ")");
+            gTree = new myTree();
+            gTree.createTree(graph);
+            gTree.updateTree(gTree.root);
+
+            gLinear = new LinearGraph();
+            gLinear.initialize(graph);
+
+            // get keyboard events
+            //d3.select(window).on("keydown", null).on("keyup", null);
+
+            d3.select(window).on("keydown", function () {
+                gTree.svgKeyDown.call(gTree);
+            })
+           .on("keyup", function () {
+               gTree.svgKeyUp.call(gTree);
+           });
+        }
+    </script>
+</head>
+
+<body class="background">
+    <div class="container">
+        <input id="filename" type="text" name="file" />
+        <button id="load" class="btn btn-info">Load</button>
+        <button id="btnExport" class="btn btn-primary">Export</button>
+        <button id="btnHelp" class="btn btn-default">Help</button>
+        <div class="btn-group left-space">
+            <button id="btnPlus" class="btn btn-success disabled plusminus">+</button>
+            <button id="btnMinus" class="btn btn-danger disabled plusminus">-</button>
+        </div>
+
+        <div class="well export">
+            <h2>
+                Please copy and paste this to a new file
+            </h2>
+            <textarea id="jsonExport" class="jsonexport"></textarea>
+        </div>
+
+        <div class="well help">
+            <h2>
+                Command Help
+            </h2>
+            <p>
+                <ul>
+                    <li><code>Click</code> on a node in the tree to add a new child.</li>
+                    <li><code>Alt + Click</code> on a node in the tree to remove it and it's children.</li>
+                    <li><code>Mouseover</code> on a node and press <code>+</code> or <code>-</code> to adjust its size</li>
+                    <li><code>Shift + ,</code> or <code>Shift + .</code> to move to the next/previous order saved in input file.</li>
+                    <li><code>Mouseover</code> on a node and press <code>o</code> to find an order for that node and its children using the bitonic algorithm as proposed by us. <code>Non optimal</code> for every graph except 1-level quasi-threshold</li>
+                    <li>Press <code>Shift + D</code> to find a linear ordering using the <i>Dynamic Programming</i> algorithm as proposed by <a href="http://users.uoa.gr/~sedthilk/papers/notexact.pdf">A Note on Exact Algorithms for Vertex Ordering Problems on Graphs</a> in <code>O(2<sup>N</sup>)</code> time and space. <code class="code-green">Optimal</code> for every graph</li>
+                    <li>Press <code>Shift + T</code> to find a linear ordering using the using the <i>Threshold Algorithm</i> for threshold graphs as proposed by <a href="http://www.cs.uoi.gr/~charis/files/cutwidth-journal.pdf">Cutwidth of split graphs and threshold graphs</a> in <code class="code-green">O(n)</code> time. <code class="code-green">Optimal</code> only for threshold graph</li>
+                    <li><code>~</code> to open up debug information. Then <code>Mouseover</code> a node to see it's specified debug info.</li>
+                </ul>
+            </p>
+        </div>
+
+        <div class="well debug">
+            <h2>Debug Info</h2>
+            <div></div>
+        </div>
+    </div>
+    <script>
+        $("#load").click(function () {
+            d3.json($("#filename").val(), arcDiagram);
+        });
+        $(".well.export").hide();
+        $(".well.help").hide();
+        $(".well.debug").hide();
+
+        $("#btnExport").click(function () {
+            if ($(".well.export").is(':visible')) {
+                $(".well.export").slideUp();
+                $("#btnExport").html("Export");
+            }
+            else {
+                var n = [];
+                var l = [];
+                var lookup = {};
+                var order = [];
+                gLinear.graph.nodes.forEach(function (el, i) {
+                    n.push({
+                        "name": el.name,
+                        "parent": el.parent != null ? el.parent.name : null,
+                        "size": el.size
+                    });
+
+                    lookup[el.name] = i;
+                    order.push(el.order);
+                });
+
+                gLinear.graph.links.forEach(function (el, i) {
+                    l.push({
+                        "source": lookup[el.source.name],
+                        "target": lookup[el.target.name],
+                    })
+                });
+
+                var g = { "nodes": n, "links": l, "order": order };
+
+                if (gLinear.graph.minimumCutwidth) {
+                    g.minimumCutwidth = gLinear.graph.minimumCutwidth;
+                }
+
+                txt = JSON.stringify(g);
+                $("#jsonExport").val(txt);
+
+                $("#btnExport").html("Close");
+
+                $(".well.export").slideDown();
+            }
+        });
+
+        $("#btnHelp").click(function () {
+            if ($(".well.help").is(':visible')) {
+                $(".well.help").slideUp();
+                $("#btnHelp").html("Help");
+            }
+            else {
+
+                $("#btnHelp").html("Close");
+
+                $(".well.help").slideDown();
+            }
+        });
+    </script>
+</body>
+</html>

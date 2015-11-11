@@ -1,0 +1,27 @@
+{
+    "nodes": [
+        { "name": "u1", "parent": "u6", "size": 1 },
+        { "name": "u2", "parent": "u6", "size": 1 },
+        { "name": "u3", "parent": "u78", "size": 1 },
+        { "name": "u4", "parent": "u9", "size": 1 },
+        { "name": "u5", "parent": "u9", "size": 1 },
+        { "name": "u6", "parent": null, "size": 1 },
+        { "name": "u78", "parent": "u6", "size": 2 },
+        { "name": "u9", "parent": "u78", "size": 1 }
+    ],
+    "links": [
+        { "source": 0, "target": 5 },
+        { "source": 1, "target": 5 },
+        { "source": 2, "target": 5 },
+        { "source": 2, "target": 6 },
+        { "source": 3, "target": 5 },
+        { "source": 3, "target": 6 },
+        { "source": 3, "target": 7 },
+        { "source": 4, "target": 5 },
+        { "source": 4, "target": 6 },
+        { "source": 4, "target": 7 },
+        { "source": 5, "target": 6 },
+        { "source": 5, "target": 7 },
+        { "source": 6, "target": 7 }
+    ]
+}
