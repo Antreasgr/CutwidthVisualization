@@ -1768,7 +1768,7 @@
                         that.cuts.push(independentCut + cut);
                         node.cut = independentCut + cut;
 
-                        node.bitonic = (right - left - node.size) / 2;
+                        node.bitonic = node.size + right - left;
 
                         node.nLeft = left;
                         node.nRight = right;
@@ -1845,7 +1845,6 @@
                     txt += " (" + this.graph.minimumCutwidth + ")";
                 }
                 d3.select("#max").text(txt).attr("x", width * 0.8 / 2).attr("y", pad + 10);
-                console.log(txt);
             }
 
             // Draws nodes on plot

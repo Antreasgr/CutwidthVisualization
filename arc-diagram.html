@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,42 +11,42 @@
     <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
 
     <!-- CSS Style //-->
-    <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,900|Source+Code+Pro:300" rel="stylesheet" type="text/css">
+    <!--<link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,900|Source+Code+Pro:300" rel="stylesheet" type="text/css">-->
     <!--<link href="http://fonts.googleapis.com/css?family=Helvetica%20Neue:300,900" rel="stylesheet" type="text/css">
     <link href="http://fonts.googleapis.com/css?family=Open%20Sans:300,900" rel="stylesheet" type="text/css">-->
 
     <style>
-        .treenode > text {
-        }
+        .treenode > text {}
         
         body {
             /*font-family: 'Source Sans Pro', sans-serif;*/
             font-weight: 300;
-            font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
             font-size: 14px;
             line-height: 1.42857;
             margin: 0px;
         }
-
+        
         .container {
             margin: 10px;
         }
         
-        .arrowR, .arrowL {
+        .arrowR,
+        .arrowL {
             fill: none;
             stroke: #888888;
             stroke-opacity: 1.0;
             stroke-width: 2px;
         }
-
+        
         .tooltipb {
             /*display: none;*/
         }
-
+        
         .background {
             background-color: #F1F2F6;
         }
-
+        
         .well {
             position: absolute;
             top: 50px;
@@ -59,17 +60,17 @@
             border-radius: 4px;
             box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.2);
         }
-
-            .well h2 {
-                color: #434A54;
-                background-color: #E6E9ED;
-                border-color: #E6E9ED;
-                text-align: center;
-                border-radius: 4px 4px 0px 0px;
-                padding: 10px 15px;
-                border-bottom: 1px solid transparent;
-            }
-
+        
+        .well h2 {
+            color: #434A54;
+            background-color: #E6E9ED;
+            border-color: #E6E9ED;
+            text-align: center;
+            border-radius: 4px 4px 0px 0px;
+            padding: 10px 15px;
+            border-bottom: 1px solid transparent;
+        }
+        
         .debug {
             right: 0px;
             width: auto;
@@ -77,12 +78,12 @@
             top: auto;
             height: auto;
         }
-
+        
         .jsonexport {
             width: 100%;
             height: 70%;
         }
-
+        
         .btn {
             color: #FFF;
             padding: 6px 12px;
@@ -95,22 +96,32 @@
             vertical-align: middle;
             cursor: pointer;
             -moz-user-select: none;
+            user-select: none;
             background-image: none;
             border: 1px solid transparent;
             border-radius: 4px;
         }
-
-            .btn, .btn.disabled, .btn[disabled] {
-                background-color: #aab2bd;
-                border-color: #aab2bd;
-            }
-
-                .btn.disabled, .btn[disabled] {
-                    filter: alpha(opacity=45);
-                    opacity: .45;
-                }
-
-        .btn-link, .btn-link:hover, .btn-link:focus, .btn-link:active, .btn-link.active, .btn-link.disabled, .btn-link[disabled] {
+        
+        .btn,
+        .btn.disabled,
+        .btn[disabled] {
+            background-color: #aab2bd;
+            border-color: #aab2bd;
+        }
+        
+        .btn.disabled,
+        .btn[disabled] {
+            filter: alpha(opacity=45);
+            opacity: .45;
+        }
+        
+        .btn-link,
+        .btn-link:hover,
+        .btn-link:focus,
+        .btn-link:active,
+        .btn-link.active,
+        .btn-link.disabled,
+        .btn-link[disabled] {
             color: #3bafda;
             background-color: transparent;
             border-color: transparent;
@@ -118,143 +129,184 @@
             -moz-box-shadow: none;
             box-shadow: none;
         }
-
-        .btn-default:hover, .btn-default:focus, .btn-default:active, .btn-default.active {
+        
+        .btn-default:hover,
+        .btn-default:focus,
+        .btn-default:active,
+        .btn-default.active {
             background-color: #ccd1d9;
             border-color: #ccd1d9;
         }
-
-        .btn-default, .btn-default.disabled, .btn-default[disabled] {
+        
+        .btn-default,
+        .btn-default.disabled,
+        .btn-default[disabled] {
             background-color: white;
             color: #333;
         }
-
+        
         .open .dropdown-toggle.btn-default {
             background-color: #ccd1d9;
             border-color: #ccd1d9;
         }
-
-        .btn-primary, .btn-primary:active, .btn-primary.active, .btn-primary.disabled, .btn-primary[disabled] {
+        
+        .btn-primary,
+        .btn-primary:active,
+        .btn-primary.active,
+        .btn-primary.disabled,
+        .btn-primary[disabled] {
             background-color: #3bafda;
             border-color: #3bafda;
         }
-
-            .btn-primary:hover, .btn-primary:focus {
-                background-color: #4fc1e9;
-                border-color: #4fc1e9;
-            }
-
+        
+        .btn-primary:hover,
+        .btn-primary:focus {
+            background-color: #4fc1e9;
+            border-color: #4fc1e9;
+        }
+        
         .open .dropdown-toggle.btn-primary {
             background-color: #4fc1e9;
             border-color: #4fc1e9;
         }
-
-        .btn-info, .btn-info:active, .btn-info.active, .btn-info.disabled, .btn-info[disabled] {
+        
+        .btn-info,
+        .btn-info:active,
+        .btn-info.active,
+        .btn-info.disabled,
+        .btn-info[disabled] {
             background-color: #37bc9b;
             border-color: #37bc9b;
         }
-
-            .btn-info:hover, .btn-info:focus {
-                background-color: #48cfad;
-                border-color: #48cfad;
-            }
-
+        
+        .btn-info:hover,
+        .btn-info:focus {
+            background-color: #48cfad;
+            border-color: #48cfad;
+        }
+        
         .open .dropdown-toggle.btn-info {
             background-color: #48cfad;
             border-color: #48cfad;
         }
-
-        .btn-success, .btn-success:active, .btn-success.active, .btn-success.disabled, .btn-success[disabled] {
+        
+        .btn-success,
+        .btn-success:active,
+        .btn-success.active,
+        .btn-success.disabled,
+        .btn-success[disabled] {
             background-color: #8cc152;
             border-color: #8cc152;
         }
-
-            .btn-success:hover, .btn-success:focus {
-                background-color: #a0d468;
-                border-color: #a0d468;
-            }
-
+        
+        .btn-success:hover,
+        .btn-success:focus {
+            background-color: #a0d468;
+            border-color: #a0d468;
+        }
+        
         .open .dropdown-toggle.btn-success {
             background-color: #a0d468;
             border-color: #a0d468;
         }
-
-        .btn-warning, .btn-warning:active, .btn-warning.active, .btn-warning.disabled, .btn-warning[disabled] {
+        
+        .btn-warning,
+        .btn-warning:active,
+        .btn-warning.active,
+        .btn-warning.disabled,
+        .btn-warning[disabled] {
             background-color: #f6bb42;
             border-color: #f6bb42;
         }
-
-            .btn-warning:hover, .btn-warning:focus {
-                background-color: #ffce54;
-                border-color: #ffce54;
-            }
-
+        
+        .btn-warning:hover,
+        .btn-warning:focus {
+            background-color: #ffce54;
+            border-color: #ffce54;
+        }
+        
         .open .dropdown-toggle.btn-warning {
             background-color: #ffce54;
             border-color: #ffce54;
         }
-
-        .btn-danger, .btn-danger:active, .btn-danger.active, .btn-danger.disabled, .btn-danger[disabled],
+        
+        .btn-danger,
+        .btn-danger:active,
+        .btn-danger.active,
+        .btn-danger.disabled,
+        .btn-danger[disabled],
         .btn-danger .open .dropdown-toggle.btn {
             background-color: #da4453;
             border-color: #da4453;
         }
-
-            .btn-danger:hover, .btn-danger:focus {
-                background-color: #ed5565;
-                border-color: #ed5565;
-            }
-
+        
+        .btn-danger:hover,
+        .btn-danger:focus {
+            background-color: #ed5565;
+            border-color: #ed5565;
+        }
+        
         .open .dropdown-toggle.btn-danger {
             background-color: #ed5565;
             border-color: #ed5565;
         }
-
+        
         .btn-group > .btn:first-child:not(:last-child):not(.dropdown-toggle) {
             border-top-right-radius: 0px;
             border-bottom-right-radius: 0px;
         }
-
-        .btn-group .btn-danger:first-child, .btn-group .btn-info:first-child, .btn-group .btn-primary:first-child, .btn-group .btn-success:first-child, .btn-group .btn-warning:first-child, .btn-group .btn:first-child {
+        
+        .btn-group .btn-danger:first-child,
+        .btn-group .btn-info:first-child,
+        .btn-group .btn-primary:first-child,
+        .btn-group .btn-success:first-child,
+        .btn-group .btn-warning:first-child,
+        .btn-group .btn:first-child {
             border-left-color: transparent;
         }
-
+        
         .btn-group > .btn:first-child {
             margin-left: 0px;
         }
-
+        
         .btn-group .btn {
             border-left-color: #96A0AD;
         }
-
-        .btn-group-vertical > .btn, .btn-group > .btn {
+        
+        .btn-group-vertical > .btn,
+        .btn-group > .btn {
             position: relative;
             float: left;
         }
-
-            .btn-group > .btn:not(:first-child):not(:last-child):not(.dropdown-toggle) {
-                border-radius: 0px;
-            }
-
-        .btn-group .btn + .btn, .btn-group .btn + .btn-group, .btn-group .btn-group + .btn, .btn-group .btn-group + .btn-group {
+        
+        .btn-group > .btn:not(:first-child):not(:last-child):not(.dropdown-toggle) {
+            border-radius: 0px;
+        }
+        
+        .btn-group .btn + .btn,
+        .btn-group .btn + .btn-group,
+        .btn-group .btn-group + .btn,
+        .btn-group .btn-group + .btn-group {
             margin-left: -1px;
         }
-
-        .btn-group > .btn:last-child:not(:first-child), .btn-group > .dropdown-toggle:not(:first-child) {
+        
+        .btn-group > .btn:last-child:not(:first-child),
+        .btn-group > .dropdown-toggle:not(:first-child) {
             border-top-left-radius: 0px;
             border-bottom-left-radius: 0px;
         }
-
-        .btn-group, .btn-group-vertical {
+        
+        .btn-group,
+        .btn-group-vertical {
             position: relative;
             display: inline-block;
             vertical-align: middle;
         }
-
+        
         .left-space {
             padding-left: 25px;
         }
-
+        
         input[type="text"] {
             width: 70%;
             height: 34px;
@@ -265,36 +317,37 @@
             background-image: none;
             border: 1px solid #ccc;
             border-radius: 4px;
-            -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
-            box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
-            -webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
-            -o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
-            transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+            -webkit-transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;
+            -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+            transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
         }
-
+        
         input:focus {
             border-color: #66afe9;
             outline: 0;
-            -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);
-            box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
         }
-
+        
         input::-moz-placeholder {
             color: #999;
             opacity: 1;
         }
-
+        
         b {
             font-weight: 900;
         }
-
+        
         .outline {
             fill: none;
             stroke: #888888;
             stroke-width: 1px;
         }
-
-        .tooltip, .tooltipb {
+        
+        .tooltip,
+        .tooltipb {
             font-size: 10pt;
             font-weight: 900;
             fill: #000000;
@@ -302,44 +355,46 @@
             stroke-width: 0.25px;
             cursor: pointer;
         }
-
+        
         .cutwidths {
             font-weight: 600;
         }
-
+        
         .node {
             stroke: #ffffff;
             stroke-width: 2px;
         }
-
-            .node:hover {
-                stroke: red !important;
-                stroke-opacity: 1.0;
-            }
-
-        .link, .treelink {
+        
+        .node:hover {
+            stroke: red !important;
+            stroke-opacity: 1.0;
+        }
+        
+        .link,
+        .treelink,
+        .bp-link {
             fill: none;
             stroke: #888888;
             stroke-weight: 1px;
         }
-
+        
         .highlight {
             stroke: red;
             stroke-weight: 4px;
             stroke-opacity: 1.0;
         }
-
+        
         .cuts {
             stroke-dasharray: 5, 5, 5, 5, 5, 5, 10, 5, 10, 5, 10, 5;
             stroke: #30BD4B;
             stroke-width: 1px;
         }
-
+        
         .halfline {
-            stroke: rgba(102,175,233,.6);
+            stroke: rgba(102, 175, 233, .6);
             stroke-width: 1px;
         }
-
+        
         .maxcut {
             font-size: 35pt;
             font-weight: 900;
@@ -348,48 +403,47 @@
             stroke-width: 0.25px;
             text-anchor: middle;
         }
-
+        
         .treenode circle {
             fill: #fff;
             stroke: steelblue;
             stroke-width: 3px;
         }
-
-            .treenode circle:hover {
-                stroke: #4E606F;
-            }
-
+        
+        .treenode circle:hover {
+            stroke: #4E606F;
+        }
+        
         .treenode.active {
             stroke: #4E60fF;
         }
-
-        svg {
-        }
-
+        
+        svg {}
+        
         code {
             padding: 2px 4px;
             color: #D14;
             white-space: nowrap;
             background-color: #F7F7F9;
             border: 1px solid #E1E1E8;
-            font-family: Monaco,Meno,Consolas,"Courier New",monospace;
+            font-family: Monaco, Meno, Consolas, "Courier New", monospace;
             border-radius: 3px;
             font-size: 12px;
         }
-
+        
         .debugul li {
             margin: 15px;
         }
-
+        
         .debugul.orders li {
             margin: 0px;
             margin-left: 15px;
         }
-
-            .debugul.orders li.selected {
-                list-style: circle;
-            }
-
+        
+        .debugul.orders li.selected {
+            list-style: circle;
+        }
+        
         .debugul {
             margin: 0px;
             padding: 0px;
@@ -397,16 +451,18 @@
             overflow: auto;
             max-width: 400px;
         }
-
+        
         .help li {
             margin: 15px;
         }
-
+        
         .code-green {
             color: #3C763D;
         }
     </style>
 
+    <script src="dynamic-algorithm.js"></script>
+    <script src="bipartite.js"></script>
     <script>
         /* GLOBALS */
         var margin = 80;            // amount of margin around plot area
@@ -427,76 +483,6 @@
         var plot = null;
 
         var plotLinear = null;
-
-        /**
-        * K-combinations
-        *
-        * Get k-sized combinations of elements in a set.
-        *
-        * Usage:
-        *   k_combinations(set, k)
-        *
-        * Parameters:
-        *   set: Array of objects of any type. They are treated as unique.
-        *   k: size of combinations to search for.
-        *
-        * Return:
-        *   Array of found combinations, size of a combination is k.
-        *
-        * Examples:
-        *
-        *   k_combinations([1, 2, 3], 1)
-        *   -> [[1], [2], [3]]
-        *
-        *   k_combinations([1, 2, 3], 2)
-        *   -> [[1,2], [1,3], [2, 3]
-        *
-        *   k_combinations([1, 2, 3], 3)
-        *   -> [[1, 2, 3]]
-        *
-        *   k_combinations([1, 2, 3], 4)
-        *   -> []
-        *
-        *   k_combinations([1, 2, 3], 0)
-        *   -> []
-        *
-        *   k_combinations([1, 2, 3], -1)
-        *   -> []
-        *
-        *   k_combinations([], 0)
-        *   -> []
-        */
-        function k_combinations(set, k) {
-            var i, j, combs, head, tailcombs;
-
-            if (k > set.length || k <= 0) {
-                return [];
-            }
-
-            if (k == set.length) {
-                return [set];
-            }
-
-            if (k == 1) {
-                combs = [];
-                for (i = 0; i < set.length; i++) {
-                    combs.push([set[i]]);
-                }
-                return combs;
-            }
-
-            // Assert {1 < k < set.length}
-
-            combs = [];
-            for (i = 0; i < set.length - k + 1; i++) {
-                head = set.slice(i, i + 1);
-                tailcombs = k_combinations(set.slice(i + 1), k - 1);
-                for (j = 0; j < tailcombs.length; j++) {
-                    combs.push(head.concat(tailcombs[j]));
-                }
-            }
-            return combs;
-        }
 
         function updateDebug(d) {
             var ord = "";
@@ -567,8 +553,7 @@
             this.tree = d3.layout.tree()
                        .size([0.2 * window.innerWidth, height]);
 
-            this.diagonal = d3.svg.diagonal()
-                .projection(function (d) { return [d.x, d.y]; });
+            this.diagonal = d3.svg.diagonal().projection(function (d) { return [d.x, d.y]; });
 
             this.root = [];
             this.length = 0;
@@ -696,7 +681,7 @@
                  .text(function (d) { return d.size; })
                  .style("fill-opacity", 1);
 
-                // Declare the linksâ€¦
+                // Declare the links
                 var link = plot.selectAll("path.treelink")
                  .data(links, function (d) { return d.source.name + "_" + d.target.name; });
 
@@ -884,14 +869,17 @@
 
                 if (d3.event.shiftKey && d3.event.keyCode == 68) {
                     // d key
-                    gTree.DynamicCutWidth();
+                    this.DynamicCutWidth();
+                }
+
+                if (d3.event.shiftKey && d3.event.keyCode == 66) {
+                    // b key
+                    bpGraph.DynamicAlgorithm();
                 }
 
                 if (d3.event.shiftKey && d3.event.keyCode == 84) {
                     // t
                     this.ThesholdOrder();
-                    //gLinear.updateSize();
-                    //this.updateTree(this.root);
                 }
             }
 
@@ -1272,121 +1260,15 @@
                 dfs(n, false);
             }
 
-
-            /**
-            * Functions for dynamic programming algorithm according to
-            * [A Note on exact Algorithms for Vertex Ordering 2011]
-            * http://users.uoa.gr/~sedthilk/papers/notexact.pdf
-            * The function returning the cutwidth of a specific order
-            **/
-            this.fCutWidth = function (S, v) {
-                var links = gLinear.graph.links;
-
-                var newS = new Set(S);
-                var iS = new Set(S);
-                newS.add(v);
-                var cut = 0;
-                var left = 0, right = 0;
-                for (var i = 0; i < links.length; i++) {
-                    if ((iS.has(links[i].source) && !newS.has(links[i].target)) ||
-                        (!newS.has(links[i].source) && iS.has(links[i].target))) {
-
-                        cut += links[i].source.size * links[i].target.size;
-                    }
-
-                    if (links[i].source == v) {
-                        if (iS.has(links[i].target)) {
-                            left += links[i].target.size;
-                        }
-                        else {
-                            right += links[i].target.size;
-                        }
-                    }
-                    else if (links[i].target == v) {
-                        if (iS.has(links[i].source)) {
-                            left += links[i].source.size;
-                        }
-                        else {
-                            right += links[i].source.size;
-                        }
-                    }
-                }
-
-                var insideCut = 0;
-                for (var i = 0; i <= v.size; i++) {
-                    insideCut = Math.max(insideCut, -(i * i) + i * (v.size + right - left) + v.size * left);
-                }
-
-                return cut + insideCut;
-            }
-
-            this.hashArray = function (a) {
-                if (!(a instanceof Array))
-                    return '';
-
-                var copy = a.slice();
-
-                copy.sort(function (a, b) {
-                    if (a.name < b.name) return -1;
-                    if (a.name > b.name) return 1;
-                    return 0;
-                });
-
-                var hash = '';
-                for (var i = 0; i < copy.length; i++) {
-                    hash += copy[i].name + ",";
-                }
-
-                return hash;
-            }
-
             this.DynamicCutWidth = function () {
-                // Create an array 0,1,....this.length;
-                var A = {};
-                var nodes = gLinear.graph.nodes;
-                for (var i = 1; i <= nodes.length; i++) {
-                    var comb = k_combinations(nodes, i);
-                    for (var j = 0; j < comb.length; j++) {
-                        var minW = { Value: Number.MAX_VALUE, Order: [] };
-                        for (var w = 0; w < comb[j].length; w++) {
-                            // build the S \ {w}
-                            var smw = new Array();
-                            for (var k = 0; k < comb[j].length; k++) {
-                                if (k != w) {
-                                    smw.push(comb[j][k]);
-                                }
-                            }
+                var min = DynamicAlgorithm.DynamicCutWidth(this.graph, DynamicAlgorithm.fCutWidth);
 
-                            var hashp = this.hashArray(smw);
-                            var f = Math.max(this.fCutWidth(smw, comb[j][w]), (A[hashp]) ? A[hashp].Value : 0);
-                            if (f < minW.Value) {
-                                minW.Value = f;
-                                if (A[hashp]) {
-                                    minW.Order = A[hashp].Order.slice();
-                                    minW.Order.push(comb[j][w]);
-                                }
-                                else {
-                                    minW.Order = [comb[j][w]];
-                                }
-                            }
-                            //minW = Math.min(minW.Value, f);
-                        }
-
-                        A[this.hashArray(comb[j])] = minW;
-                    }
-                }
-
-                for (var i = 0; i < A[this.hashArray(nodes)].Order.length; i++) {
-                    A[this.hashArray(nodes)].Order[i].order = i;
-                }
-
-                if (this.graph) {
-                    this.graph.minimumCutwidth = A[this.hashArray(nodes)].Value;
+                 if (this.graph) {
+                    this.graph.minimumCutwidth = min.Value;
                 }
 
                 gLinear.updateSize();
 
-                return A[this.hashArray(nodes)];
             }
         }
 
@@ -1481,7 +1363,7 @@
             }
 
             this.getXY = function (datum) {
-                return { x: this.xscale(datum.order), y: yfixed };
+                return { x: this.xscale(datum.order), y: yfixed + datum.y };
             }
 
             this.initialize = function (graph) {
@@ -1569,8 +1451,6 @@
                                 .attr("class", "tooltipb");
 
                 tooltipsb.exit().remove();
-
-
 
                 var cutScaler = d3.scale.linear()
                                  .domain([d3.min(this.cuts), d3.max(this.cuts)])
@@ -1842,7 +1722,7 @@
                     txt += " (" + this.graph.minimumCutwidth + ")";
                 }
                 d3.select("#max").text(txt).attr("x", width * 0.8 / 2).attr("y", pad + 10);;
-                console.log(txt);
+                // console.log(txt);
             }
 
             // Draws nodes on plot
@@ -2015,13 +1895,13 @@
             this.dragstart = function (d3node, d) {
                 d3.select(d3node)
                  .attr("r", d.r * 1.5)
-                 .attr("cy", yfixed - 50);
+                 .attr("cy", yfixed + d.y - 50);
             }
 
             this.dragend = function (d3node, d) {
                 d3.select(d3node)
                  .attr("r", d.r)
-                 .attr("cy", yfixed);
+                 .attr("cy", yfixed + d.y);
 
                 //gTree.updateTree(gTree.root);
             }
@@ -2046,7 +1926,7 @@
                     // arc will always be drawn around (0, 0)
                     // shift so (0, 0) will be between source and target
                     var xshift = that.getXY(d.source).x + (that.getXY(d.target).x - that.getXY(d.source).x) / 2;
-                    var yshift = that.getXY(d).y;
+                    var yshift = that.getXY(d.source).y;
                     return "translate(" + xshift + ", " + yshift + ")";
                 })
                     .attr("d", function (d, i) {
@@ -2075,7 +1955,7 @@
                         // arc will always be drawn around (0, 0)
                         // shift so (0, 0) will be between source and target
                         var xshift = that.getXY(d.source).x + (that.getXY(d.target).x - that.getXY(d.source).x) / 2;
-                        var yshift = that.getXY(d).y;
+                        var yshift = that.getXY(d.source).y;
                         return "translate(" + xshift + ", " + yshift + ")";
                     })
                     .attr("d", function (d, i) {
@@ -2101,7 +1981,9 @@
         var gLinear = null;
 
         $(document).ready(function () {
-            arcDiagram({ "nodes": [{ "name": "n0", "parent": null, "size": 4 }], "links": [] });
+             //arcDiagram({ "nodes": [{ "name": "n0", "parent": null, "size": 4 }], "links": [] });
+            arcDiagram(randomGraph());
+
             window.addEventListener('resize', function (event) {
                 margin = 80;            // amount of margin around plot area
                 width = window.innerWidth;           // width of svg image
@@ -2120,26 +2002,76 @@
             });
         });
 
+        function getRandomIntInclusive(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function randomGraph() {
+            var numOfNodes = 4;
+            var maxSize = 3;
+            var minSize = 1;
+            var links = []; var nodes = [];
+
+            var size = getRandomIntInclusive(minSize, maxSize);
+            var root = { name: "n0", parent: null, size: size };
+            nodes.push(root);
+
+            numOfNodes--;
+
+            var i = 1;
+            for (var k = 0; k < nodes.length; k++) {
+                var parentIndex = k;
+
+                var numOfChildren = getRandomIntInclusive(2, numOfNodes - 1);
+                if (numOfChildren == numOfNodes - 1) {
+                    numOfChildren = numOfNodes;
+                }
+
+                numOfNodes -= numOfChildren;
+
+                for (var j = 0; j < numOfChildren; j++) {
+                    nodes.push({ name: "n" + i, parent: nodes[parentIndex].name, size: size });
+                    links.push({ source: i, target: parentIndex });
+
+                    var parentName = nodes[parentIndex].parent;
+                    while (parentName != null) {
+                        var grandParentIndex = nodes.map(function (e) { return e.name; }).indexOf(parentName);
+                        if (grandParentIndex != -1) {
+                            links.push({ source: i, target: grandParentIndex });
+                            parentName = nodes[grandParentIndex].parent;
+                        } else {
+                            break;
+                        }
+                    }
+                    i++;
+                }
+
+                if (numOfNodes <= 1) {
+                    break;
+                }
+            }
+            
+            return { nodes: nodes, links: links };
+        }
+
         // Draws an arc diagram for the provided undirected graph
         function arcDiagram(graph) {
             // create svg image
             gGraph = graph;
 
-            d3.select("svg")
-               .remove();
+            d3.select("svg").remove();
+
             var svg = d3.select("body")
                 .append("svg")
                 .attr("id", "arc")
                 .attr("width", window.innerWidth)
                 .attr("height", height);
 
-            var leftgrad = svg.append("defs").append("linearGradient").attr("id", "leftgrad")
-                            .attr("x1", "0%").attr("x2", "100%").attr("y1", "0%").attr("y2", "0%");
+            var leftgrad = svg.append("defs").append("linearGradient").attr("id", "leftgrad").attr("x1", "0%").attr("x2", "100%").attr("y1", "0%").attr("y2", "0%");
             leftgrad.append("stop").attr("offset", "50%").style("stop-color", "#37BC9B");
             leftgrad.append("stop").attr("offset", "50%").style("stop-color", "#fff");
 
-            var rightgrad = svg.append("defs").append("linearGradient").attr("id", "rightgrad")
-                            .attr("x1", "100%").attr("x2", "0%").attr("y1", "0%").attr("y2", "0%");
+            var rightgrad = svg.append("defs").append("linearGradient").attr("id", "rightgrad").attr("x1", "100%").attr("x2", "0%").attr("y1", "0%").attr("y2", "0%");
             rightgrad.append("stop").attr("offset", "50%").style("stop-color", "#37BC9B");
             rightgrad.append("stop").attr("offset", "50%").style("stop-color", "#fff");
 
@@ -2155,7 +2087,6 @@
                .append("polyline")
                .attr("points", "0,0 10,5 0,10 1,5")
                .attr("fill", "#c00");
-
 
             // create plot area within svg
             plotLinear = svg.append("g")
@@ -2178,6 +2109,12 @@
 
             gLinear = new LinearGraph();
             gLinear.initialize(graph);
+
+            var plotBipartite = svg.append("g").attr("id", "bipartite").attr("transform", "translate(" + window.innerWidth * 0.8 + "," + (pad + 250) + ")");
+
+            bpGraph = new BipartiteGraph(graph);
+            bpGraph.createBipartiteGraph();
+            bpGraph.drawGraph();
 
             // get keyboard events
             //d3.select(window).on("keydown", null).on("keyup", null);
@@ -2220,10 +2157,19 @@
                     <li><code>Alt + Click</code> on a node in the tree to remove it and it's children.</li>
                     <li><code>Mouseover</code> on a node and press <code>+</code> or <code>-</code> to adjust its size</li>
                     <li><code>Shift + ,</code> or <code>Shift + .</code> to move to the next/previous order saved in input file.</li>
-                    <li><code>Mouseover</code> on a node and press <code>o</code> to find an order for that node and its children using the bitonic algorithm as proposed by us. <code>Non optimal</code> for every graph except 1-level quasi-threshold</li>
-                    <li>Press <code>Shift + D</code> to find a linear ordering using the <i>Dynamic Programming</i> algorithm as proposed by <a href="http://users.uoa.gr/~sedthilk/papers/notexact.pdf">A Note on Exact Algorithms for Vertex Ordering Problems on Graphs</a> in <code>O(2<sup>N</sup>)</code> time and space. <code class="code-green">Optimal</code> for every graph</li>
-                    <li>Press <code>Shift + T</code> to find a linear ordering using the using the <i>Threshold Algorithm</i> for threshold graphs as proposed by <a href="http://www.cs.uoi.gr/~charis/files/cutwidth-journal.pdf">Cutwidth of split graphs and threshold graphs</a> in <code class="code-green">O(n)</code> time. <code class="code-green">Optimal</code> only for threshold graph</li>
-                    <li><code>~</code> to open up debug information. Then <code>Mouseover</code> a node to see it's specified debug info.</li>
+                    <li><code>Mouseover</code> on a node and press <code>o</code> to find an order for that node and its children
+                        using the bitonic algorithm as proposed by us. <code>Non optimal</code> for every graph except 1-level
+                        quasi-threshold
+                    </li>
+                    <li>Press <code>Shift + D</code> to find a linear ordering using the <i>Dynamic Programming</i> algorithm
+                        as proposed by <a href="http://users.uoa.gr/~sedthilk/papers/notexact.pdf">A Note on Exact Algorithms for Vertex Ordering Problems on Graphs</a>                        in <code>O(2<sup>N</sup>)</code> time and space. <code class="code-green">Optimal</code> for every
+                        graph
+                    </li>
+                    <li>Press <code>Shift + T</code> to find a linear ordering using the using the <i>Threshold Algorithm</i>                        for threshold graphs as proposed by <a href="http://www.cs.uoi.gr/~charis/files/cutwidth-journal.pdf">Cutwidth of split graphs and threshold graphs</a>                        in <code class="code-green">O(n)</code> time. <code class="code-green">Optimal</code> only for threshold
+                        graph
+                    </li>
+                    <li><code>~</code> to open up debug information. Then <code>Mouseover</code> a node to see it's specified
+                        debug info.</li>
                 </ul>
             </p>
         </div>
@@ -2298,4 +2244,5 @@
         });
     </script>
 </body>
+
 </html>
