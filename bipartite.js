@@ -1,6 +1,7 @@
-function BipartiteGraph(graph) {
+function BipartiteGraph(graph, gElement) {
     this.radius = 3;
     this.margin = { x: 100, y: 20 };
+    this.gElement = gElement;
 
     this.diagonal = d3.svg.diagonal().projection(function (d) { return [d.x, d.y]; });
 
@@ -46,7 +47,7 @@ function BipartiteGraph(graph) {
     }
 
     this.drawGraph = function () {
-        var p = d3.select("#bipartite");
+        var p = gElement; // d3.select("#bipartite");
 
         var yleft = 0, yright = 0;
         for (var i = 0; i < this.graph.nodes.length; i++) {
