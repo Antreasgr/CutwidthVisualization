@@ -1,30 +1,28 @@
-function myTree() {
-    this.tree = d3.layout.tree()
-        .size([0.2 * window.innerWidth, height]);
-
-    this.diagonal = d3.svg.diagonal().projection(function (d) { return [d.x, d.y]; });
-
+function myTree(graph, gElement) {
     this.root = [];
     this.length = 0;
+    this.graph = graph;
 
-    // CAUTION THIS IS SHARED WITH LinearGraph to keep syncronized
-    this.graph = null;
-
+    this.gElement = gElement;
     this.treeSelection = null;
 
-    this.createTree = function (graph) {
+    this.tree = d3.layout.tree().size([0.2 * window.innerWidth, height]);
+    this.diagonal = d3.svg.diagonal().projection(function(d) { return [d.x, d.y]; });
+
+    var self = this;
+    this.createTree = function(graph) {
         // try to create a tree
         this.graph = graph;
 
         if (graph.nodes.length > 0) {
-            var dataMap = graph.nodes.reduce(function (map, node) {
+            var dataMap = graph.nodes.reduce(function(map, node) {
                 map[node.name] = node;
                 return map;
             }, {});
 
             var nextIndex = 1;
             var t = this;
-            graph.nodes.forEach(function (d, i) {
+            graph.nodes.forEach(function(d, i) {
                 // add to parent
                 var parent = dataMap[d.parent];
                 if (parent) {
@@ -35,8 +33,8 @@ function myTree() {
                     }
 
                     (parent.children || (parent.children = []))
-                        // add node to child array
-                        .push(d);
+                    // add node to child array
+                    .push(d);
 
                     d.group1 = parent.group1;
                 } else {
@@ -50,16 +48,16 @@ function myTree() {
         }
     }
 
-    this.resizeTree = function () {
+    this.resizeTree = function() {
         this.tree = d3.layout.tree()
             .size([0.2 * window.innerWidth, height]);
 
         this.updateTree(this.root);
     }
 
-    this.updateTree = function (r) {
+    this.updateTree = function(r) {
         console.log("updateTree");
-        if (!r){
+        if (!r) {
             r = this.root;
         }
 
@@ -67,9 +65,6 @@ function myTree() {
         if (Array.isArray(r)) {
             root = r[0];
         }
-
-        // Compute the new tree layout.
-        var thisTree = this;
 
         this.tree.sort(function comparator(a, b) {
             return a.order - b.order;
@@ -79,65 +74,63 @@ function myTree() {
             links = this.tree.links(n);
 
         // Normalize for fixed-depth.
-        n.forEach(function (d) {
+        n.forEach(function(d) {
             d.y = d.depth * 60;
-            // // if we have an ordering change the fill
-            // if (d.left != null && d.left.length > 0) {
-            //     for (var i = 0; i < d.left.length; i++) {
-            //         d.left[i].fill = "leftgrad";
-            //     }
-            // }
-            // if (d.right != null && d.right.length > 0) {
-            //     for (var i = 0; i < d.right.length; i++) {
-            //         d.right[i].fill = "rightgrad";
-            //     }
-            // }
         });
 
         // Declare the nodes
+        // TODO: remove plot variable to gElement
         var node = plot
             .selectAll(".treenode")
-            .data(n, function (d) { return d.name; });
+            .data(n, function(d) { return d.name; });
 
         node.exit().remove();
 
         node.transition()
             .duration(500)
-            .attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; });
+            .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 
         node.selectAll("text")
-            .text(function (d) { return d.size; })
+            .text(function(d) { return d.size; })
 
         //update styles
         node.select("circle")
-            .style("fill", function (d) { return (d.fill ? "url(#" + d.fill + ")" : "#fff"); });
+            .style("fill", function(d) { return (d.fill ? "url(#" + d.fill + ")" : "#fff"); });
 
         // Enter the nodes.
         var nodeEnter = node.enter().append("g")
             .attr("class", "treenode")
-            .attr("transform", function (d) {
+            .attr("transform", function(d) {
                 return "translate(" + d.x + "," + d.y + ")";
             })
-            .on("mouseover", function (d, i) { thisTree.treeSelection = d; $(".plusminus").removeClass("disabled"); updateDebug(d); })
-            .on("mouseout", function (d, i) { thisTree.treeSelection = null; $(".plusminus").addClass("disabled"); updateDebug(null); });
+            .on("mouseover", function(d, i) {
+                self.treeSelection = d;
+                $(".plusminus").removeClass("disabled");
+                updateDebug(d);
+            })
+            .on("mouseout", function(d, i) {
+                self.treeSelection = null;
+                $(".plusminus").addClass("disabled");
+                updateDebug(null);
+            });
 
         nodeEnter.append("circle")
             .attr("r", 10)
-            .style("fill", function (d) { return (d.fill ? "url(#" + d.fill + ")" : "#fff"); })
+            .style("fill", function(d) { return "white"; /* (d.fill ? "url(#" + d.fill + ")" : "#fff");*/ })
             .on("click", this.treeclick);
 
         nodeEnter.append("text")
-            .attr("y", function (d) {
+            .attr("y", function(d) {
                 return -18;
             })
             .attr("dy", ".35em")
             .attr("text-anchor", "middle")
-            .text(function (d) { return d.size; })
+            .text(function(d) { return d.size; })
             .style("fill-opacity", 1);
 
         // Declare the links
         var link = plot.selectAll("path.treelink")
-            .data(links, function (d) { return d.source.name + "_" + d.target.name; });
+            .data(this.graph.links, function(d) { return d.source.name + "_" + d.target.name; });
 
         link.transition().duration(500).attr("d", this.diagonal);
 
@@ -153,7 +146,7 @@ function myTree() {
         }
     }
 
-    this.calculateNeighbours = function () {
+    this.calculateNeighbours = function() {
         /// Calculate neighbourhoods
         var root = this.root;
         if (Array.isArray(root)) {
@@ -161,6 +154,7 @@ function myTree() {
         }
 
         var s = root;
+
         function ndfs(nnode) {
             nnode.neighbourhood = 0;
             if (nnode.children && nnode.children.length > 0) {
@@ -168,15 +162,14 @@ function myTree() {
                     ndfs(nnode.children[i]);
                     nnode.neighbourhood += nnode.children[i].neighbourhood + nnode.children[i].size;
                 }
-            }
-            else {
+            } else {
                 nnode.neighbourhood = 0;
             }
         }
         ndfs(root);
     }
 
-    this.treeclick = function (d, i) {
+    this.treeclick = function(d, i) {
         d3.event.stopPropagation();
         if (lock)
             return;
@@ -228,7 +221,7 @@ function myTree() {
             var newName = 0;
             var stack = [];
 
-            var rec = function (n) {
+            var rec = function(n) {
                 if (Number.isInteger(n.name)) {
                     name = Math.max(name, n.name);
                 }
@@ -274,7 +267,7 @@ function myTree() {
         lock = false;
     }
 
-    this.svgKeyDown = function () {
+    this.svgKeyDown = function() {
         if (lock)
             return;
         if (this.treeSelection) {
@@ -284,19 +277,18 @@ function myTree() {
                 this.treeSelection.size++;
                 this.updateTree(this.root);
                 gLinear.updateSize();
-            }
-            else if ((d3.event.keyCode == 109 || d3.event.keyCode == 173) && this.treeSelection.size > 0) {
+            } else if ((d3.event.keyCode == 109 || d3.event.keyCode == 173) && this.treeSelection.size > 0) {
                 // - pressed
                 this.treeSelection.size--;
                 this.updateTree(this.root);
                 gLinear.updateSize();
-            }
-            else if (d3.event.keyCode == 79) {
+            } else if (d3.event.keyCode == 79) {
                 // Enter pressed run polynomial ALGORITHM
                 lock = true;
                 this.BestOrder(this.treeSelection);
                 this.ArrangeAll();
                 gLinear.updateSize();
+                newLinearLayout.updateSize();
                 this.updateTree(this.root);
                 lock = false;
             }
@@ -337,252 +329,249 @@ function myTree() {
         }
     }
 
-    this.svgKeyUp = function () {
+    this.svgKeyUp = function() {
         d3.event.stopPropagation();
     }
 
     //---------------------------------------------------------------------------------------------------//
-    this.BestOrder = function (rootNode) {
-        // This is where the magic happens
-        // rootNode is where to start running
+    this.BestOrder = function(rootNode) {
+            // This is where the magic happens
+            // rootNode is where to start running
 
-        var stack = [];
-        // Initialize a stack of all the nodes
-        function add(n) {
-            if (n != null)
-                stack.push(n);
-            if (n.children && n.children.length > 0) {
-                for (var i = 0; i < n.children.length; i++) {
-                    add(n.children[i]);
-                }
-            }
-        }
-
-        add(rootNode);
-
-        // Loop for all nodes
-        while ((node = stack.pop()) != null) {
-            if (node.children == null || node.children.length == 0) {
-                // this node has no childs it is a simple clique
-                node.ci = [];
-                node.fi = -Number.MAX_VALUE;
-                for (var x = 1; x <= node.size; x++) {
-                    node.ci.push(x * (node.size - x));
-                    if (node.parent && x != node.size) {
-                        node.fi = Math.max(node.fi, x * (node.size - x) + node.parent.size * (x));
+            var stack = [];
+            // Initialize a stack of all the nodes
+            function add(n) {
+                if (n != null)
+                    stack.push(n);
+                if (n.children && n.children.length > 0) {
+                    for (var i = 0; i < n.children.length; i++) {
+                        add(n.children[i]);
                     }
                 }
-                // console.log(node);
             }
-            else {
-                // this is the root of a subTree
 
-                // sort children by reverse fi order
-                var sortedChildren = node.children.slice().sort(function (a, b) { return b.fi - a.fi; });
+            add(rootNode);
 
-                // initialize the array
-                var n = 0;
-                for (var i = 0; i < sortedChildren.length; i++) {
-                    n += sortedChildren[i].ci.length;
-                }
-
-                var A = [];
-                for (var x = 0; x <= sortedChildren.length; x++) {
-                    A[x] = [];
-                    for (var y = 0; y <= n; y++) {
-                        A[x][y] = { Value: null, Order: [] };
+            // Loop for all nodes
+            while ((node = stack.pop()) != null) {
+                if (node.children == null || node.children.length == 0) {
+                    // this node has no childs it is a simple clique
+                    node.ci = [];
+                    node.fi = -Number.MAX_VALUE;
+                    for (var x = 1; x <= node.size; x++) {
+                        node.ci.push(x * (node.size - x));
+                        if (node.parent && x != node.size) {
+                            node.fi = Math.max(node.fi, x * (node.size - x) + node.parent.size * (x));
+                        }
                     }
-                }
+                    // console.log(node);
+                } else {
+                    // this is the root of a subTree
 
-                // Calculate bitonic ordering
-                // Ni: einai o trexwn arithmos komvwn pou exoun eksetastei
-                // i: einai h seira pou eimaste sto pinaka A , diladi i trexousa klika, alla seira 0 einai i kamia klika
-                // previ: einai deikths gia to for se ola ta paidia tou trexontws komvou
-                var ni = 0;
-                for (var previ = 0; previ < sortedChildren.length; previ++) {
-                    var child = sortedChildren[previ];
-                    var i = previ + 1;
-                    ni += child.ci.length;
-                    for (var j = 0; j <= ni; j++) {
-                        // Cut in universal node has j left, ni Total ie ni - j right
-                        var cutUniversal = -Number.MAX_VALUE;
-                        for (var x = 0; x <= node.size; x++) {
-                            cutUniversal = Math.max(cutUniversal, x * (node.size - x) + x * j + (node.size - x) * (ni - j));
+                    // sort children by reverse fi order
+                    var sortedChildren = node.children.slice().sort(function(a, b) { return b.fi - a.fi; });
+
+                    // initialize the array
+                    var n = 0;
+                    for (var i = 0; i < sortedChildren.length; i++) {
+                        n += sortedChildren[i].ci.length;
+                    }
+
+                    var A = [];
+                    for (var x = 0; x <= sortedChildren.length; x++) {
+                        A[x] = [];
+                        for (var y = 0; y <= n; y++) {
+                            A[x][y] = { Value: null, Order: [] };
                         }
+                    }
 
-                        // Katevasma ston pinaka (Diladi right sto order)
-                        if (A[i - 1][j].Value != null || j == 0) {
-                            // Cut from this node
-                            var cutNode = (ni - j - child.ci.length) * node.size;
-                            var mc = -1 * Number.MAX_VALUE;
-                            for (var x = 0; x < child.ci.length; x++) {
-                                mc = Math.max(mc, child.ci[x] + (x + 1) * node.size);
+                    // Calculate bitonic ordering
+                    // Ni: einai o trexwn arithmos komvwn pou exoun eksetastei
+                    // i: einai h seira pou eimaste sto pinaka A , diladi i trexousa klika, alla seira 0 einai i kamia klika
+                    // previ: einai deikths gia to for se ola ta paidia tou trexontws komvou
+                    var ni = 0;
+                    for (var previ = 0; previ < sortedChildren.length; previ++) {
+                        var child = sortedChildren[previ];
+                        var i = previ + 1;
+                        ni += child.ci.length;
+                        for (var j = 0; j <= ni; j++) {
+                            // Cut in universal node has j left, ni Total ie ni - j right
+                            var cutUniversal = -Number.MAX_VALUE;
+                            for (var x = 0; x <= node.size; x++) {
+                                cutUniversal = Math.max(cutUniversal, x * (node.size - x) + x * j + (node.size - x) * (ni - j));
                             }
-                            cutNode += mc;
-                            A[i][j].Value = Math.max(cutNode, cutUniversal, A[i - 1][j].Value);
-                            A[i][j].Order = A[i - 1][j].Order.slice();
-                        }
 
-                        // + child size theseis deksia sto pinaka (Diladi Left sto order)
-                        if ((j == child.ci.length) || ((j - child.ci.length) > 0 && A[i - 1][j - child.ci.length].Value != null)) {
-                            // Cut from Node
-                            var cutNode = (j - child.ci.length) * node.size;
-                            var mc = -Number.MAX_VALUE;
-                            for (var x = 0; x < child.ci.length; x++) {
-                                mc = Math.max(mc, child.ci[x] + (x + 1) * node.size);
+                            // Katevasma ston pinaka (Diladi right sto order)
+                            if (A[i - 1][j].Value != null || j == 0) {
+                                // Cut from this node
+                                var cutNode = (ni - j - child.ci.length) * node.size;
+                                var mc = -1 * Number.MAX_VALUE;
+                                for (var x = 0; x < child.ci.length; x++) {
+                                    mc = Math.max(mc, child.ci[x] + (x + 1) * node.size);
+                                }
+                                cutNode += mc;
+                                A[i][j].Value = Math.max(cutNode, cutUniversal, A[i - 1][j].Value);
+                                A[i][j].Order = A[i - 1][j].Order.slice();
                             }
-                            cutNode += mc;
 
-                            if (A[i][j].Value != null) {
-                                // here is tricky , we have a min order from
-                                // previous case so clique goes right in order
-                                // and nothing changes
-                                // or this is minimum so clique goes left in order and we overwrite this cell
-                                var cValue = Math.max(cutNode, cutUniversal, A[i - 1][j - child.ci.length].Value);
-                                if (cValue <= A[i][j].Value) {
-                                    A[i][j].Value = cValue;
+                            // + child size theseis deksia sto pinaka (Diladi Left sto order)
+                            if ((j == child.ci.length) || ((j - child.ci.length) > 0 && A[i - 1][j - child.ci.length].Value != null)) {
+                                // Cut from Node
+                                var cutNode = (j - child.ci.length) * node.size;
+                                var mc = -Number.MAX_VALUE;
+                                for (var x = 0; x < child.ci.length; x++) {
+                                    mc = Math.max(mc, child.ci[x] + (x + 1) * node.size);
+                                }
+                                cutNode += mc;
+
+                                if (A[i][j].Value != null) {
+                                    // here is tricky , we have a min order from
+                                    // previous case so clique goes right in order
+                                    // and nothing changes
+                                    // or this is minimum so clique goes left in order and we overwrite this cell
+                                    var cValue = Math.max(cutNode, cutUniversal, A[i - 1][j - child.ci.length].Value);
+                                    if (cValue <= A[i][j].Value) {
+                                        A[i][j].Value = cValue;
+                                        A[i][j].Order = A[i - 1][j - child.ci.length].Order.slice();
+                                        A[i][j].Order.push(child);
+                                    }
+                                } else {
+                                    // We see this cell for the first time so it goes right in order
+                                    A[i][j].Value = Math.max(cutNode, cutUniversal, A[i - 1][j - child.ci.length].Value);
                                     A[i][j].Order = A[i - 1][j - child.ci.length].Order.slice();
                                     A[i][j].Order.push(child);
                                 }
                             }
-                            else {
-                                // We see this cell for the first time so it goes right in order
-                                A[i][j].Value = Math.max(cutNode, cutUniversal, A[i - 1][j - child.ci.length].Value);
-                                A[i][j].Order = A[i - 1][j - child.ci.length].Order.slice();
-                                A[i][j].Order.push(child);
+                        }
+                    }
+                    // Done we have a minimum
+                    allMinimums = [];
+                    var minValue = Number.MAX_VALUE;
+                    for (var i = 0; i < A[A.length - 1].length; i++) {
+                        if (A[A.length - 1][i].Value != null && A[A.length - 1][i].Value < minValue) {
+                            allMinimums = [A[A.length - 1][i]];
+                            minValue = A[A.length - 1][i].Value;
+                        } else if (A[A.length - 1][i].Value != null && A[A.length - 1][i].Value == minValue) {
+                            // we have a second minimum push it
+                            allMinimums.push(A[A.length - 1][i])
+                        }
+                    }
+
+                    // We now have many minima , we need to find the best one based on Cut + uLi
+                    for (var m = 0; m < allMinimums.length; m++) {
+                        var minCW = allMinimums[m];
+
+                        // Left Children are in minCW.Order
+                        // Calculate the right Children
+                        var rightChildren = [];
+                        for (var i = 0; i < sortedChildren.length; i++) {
+                            var found = false;
+                            for (var j = 0; j < minCW.Order.length; j++) {
+                                if (minCW.Order[j] === sortedChildren[i]) {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (!found) {
+                                rightChildren.push(sortedChildren[i]);
                             }
                         }
-                    }
-                }
-                // Done we have a minimum
-                allMinimums = [];
-                var minValue = Number.MAX_VALUE;
-                for (var i = 0; i < A[A.length - 1].length; i++) {
-                    if (A[A.length - 1][i].Value != null && A[A.length - 1][i].Value < minValue) {
-                        allMinimums = [A[A.length - 1][i]];
-                        minValue = A[A.length - 1][i].Value;
-                    }
-                    else if (A[A.length - 1][i].Value != null && A[A.length - 1][i].Value == minValue) {
-                        // we have a second minimum push it
-                        allMinimums.push(A[A.length - 1][i])
-                    }
-                }
 
-                // We now have many minima , we need to find the best one based on Cut + uLi
-                for (var m = 0; m < allMinimums.length; m++) {
-                    var minCW = allMinimums[m];
+                        // Save them for convenience
+                        var left = minCW.Order;
+                        var right = rightChildren;
 
-                    // Left Children are in minCW.Order
-                    // Calculate the right Children
-                    var rightChildren = [];
-                    for (var i = 0; i < sortedChildren.length; i++) {
-                        var found = false;
-                        for (var j = 0; j < minCW.Order.length; j++) {
-                            if (minCW.Order[j] === sortedChildren[i]) {
-                                found = true;
-                                break;
+                        // Now calculate the new cut's at each point of the order
+                        var ci = [];
+                        var leftcut = 0;
+                        for (var i = 0; i < left.length; i++) {
+                            for (var j = 0; j < left[i].ci.length; j++) {
+                                // new cutwidth is the old cutwidth plus left*universal
+                                ci.push(left[i].ci[j] + (j + 1 + leftcut) * node.size);
+                            }
+                            leftcut += left[i].ci.length;
+                        }
+
+                        //the universal cut
+                        var rightcut = 0;
+                        for (var i = 0; i < right.length; i++) {
+                            rightcut += right[i].ci.length;
+                        }
+                        for (var i = 1; i <= node.size; i++) {
+                            ci.push(i * (node.size - i) + i * rightcut + (node.size - i) * leftcut);
+                        }
+
+                        // now do the same for the right
+                        // but reversed
+                        rightcut = 0;
+                        var rci = [];
+                        for (var i = 0; i < right.length; i++) {
+                            rci.push(rightcut * node.size);
+                            for (var j = 0; j < right[i].ci.length - 1; j++) {
+                                // new cutwidth is the old cutwidth plus the right*universal
+                                rci.push(right[i].ci[j] + (j + 1 + rightcut) * node.size);
+                            }
+                            rightcut += right[i].ci.length;
+                        }
+
+                        rci.reverse();
+                        Array.prototype.push.apply(ci, rci);
+
+                        var uLi = Number.MAX_VALUE;
+                        var uRi = Number.MAX_VALUE;
+                        if (node.parent) {
+                            uRi = 0 + node.parent.size * ci.length;
+                            for (var i = 0; i < ci.length; i++) {
+                                uLi = Math.min(uLi, ci[i] + (node.parent.size * (i + 1)));
+                                if (i != ci.length - 1)
+                                    uRi = Math.min(uRi, ci[i] + (node.parent.size * (ci.length - i - 1)));
                             }
                         }
-                        if (!found) {
-                            rightChildren.push(sortedChildren[i]);
+
+                        // check if this is minimum
+                        if (m == 0 || uRi < node.fi) {
+                            node.ci = ci;
+                            node.left = left;
+                            node.right = right;
+                            node.fi = uRi;
                         }
                     }
 
-                    // Save them for convenience
-                    var left = minCW.Order;
-                    var right = rightChildren;
 
-                    // Now calculate the new cut's at each point of the order
-                    var ci = [];
-                    var leftcut = 0;
-                    for (var i = 0; i < left.length; i++) {
-                        for (var j = 0; j < left[i].ci.length; j++) {
-                            // new cutwidth is the old cutwidth plus left*universal
-                            ci.push(left[i].ci[j] + (j + 1 + leftcut) * node.size);
-                        }
-                        leftcut += left[i].ci.length;
-                    }
+                    // now we can calculate fi also
+                    //if (node.parent) {
+                    //    // We might need to reverse this tree
+                    //    var uLi = 0;
+                    //    var uRi = 0;
+                    //    for (var i = 0; i < node.ci.length; i++) {
+                    //        uLi = Math.max(uLi, node.ci[i] + (node.parent.size * (i + 1)));
+                    //        uRi = Math.max(uRi, node.ci[i] + (node.parent.size * (node.ci.length - i - 1)));
+                    //    }
 
-                    //the universal cut
-                    var rightcut = 0;
-                    for (var i = 0; i < right.length; i++) {
-                        rightcut += right[i].ci.length;
-                    }
-                    for (var i = 1; i <= node.size; i++) {
-                        ci.push(i * (node.size - i) + i * rightcut + (node.size - i) * leftcut);
-                    }
+                    //    if (uRi < uLi) {
+                    //        // Reverse of this order is better, we have to reverse it
+                    //        var tmp = node.left;
+                    //        node.left = node.right;
+                    //        node.right = tmp;
 
-                    // now do the same for the right
-                    // but reversed
-                    rightcut = 0;
-                    var rci = [];
-                    for (var i = 0; i < right.length; i++) {
-                        rci.push(rightcut * node.size);
-                        for (var j = 0; j < right[i].ci.length - 1; j++) {
-                            // new cutwidth is the old cutwidth plus the right*universal
-                            rci.push(right[i].ci[j] + (j + 1 + rightcut) * node.size);
-                        }
-                        rightcut += right[i].ci.length;
-                    }
+                    //        tmp = node.ci.pop();
+                    //        node.ci.reverse();
+                    //        node.ci.push(tmp);
+                    //    }
 
-                    rci.reverse();
-                    Array.prototype.push.apply(ci, rci);
-
-                    var uLi = Number.MAX_VALUE;
-                    var uRi = Number.MAX_VALUE;
-                    if (node.parent) {
-                        uRi = 0 + node.parent.size * ci.length;
-                        for (var i = 0; i < ci.length; i++) {
-                            uLi = Math.min(uLi, ci[i] + (node.parent.size * (i + 1)));
-                            if (i != ci.length - 1)
-                                uRi = Math.min(uRi, ci[i] + (node.parent.size * (ci.length - i - 1)));
-                        }
-                    }
-
-                    // check if this is minimum
-                    if (m == 0 || uRi < node.fi) {
-                        node.ci = ci;
-                        node.left = left;
-                        node.right = right;
-                        node.fi = uRi;
-                    }
+                    //    node.fi = -Number.MAX_VALUE;
+                    //    for (var i = 0; i < node.ci.length; i++) {
+                    //        node.fi = Math.max(node.fi, node.ci[i] - (node.parent.size * (node.ci.length - i - 1)));
+                    //    }
+                    //}
                 }
-
-
-                // now we can calculate fi also
-                //if (node.parent) {
-                //    // We might need to reverse this tree
-                //    var uLi = 0;
-                //    var uRi = 0;
-                //    for (var i = 0; i < node.ci.length; i++) {
-                //        uLi = Math.max(uLi, node.ci[i] + (node.parent.size * (i + 1)));
-                //        uRi = Math.max(uRi, node.ci[i] + (node.parent.size * (node.ci.length - i - 1)));
-                //    }
-
-                //    if (uRi < uLi) {
-                //        // Reverse of this order is better, we have to reverse it
-                //        var tmp = node.left;
-                //        node.left = node.right;
-                //        node.right = tmp;
-
-                //        tmp = node.ci.pop();
-                //        node.ci.reverse();
-                //        node.ci.push(tmp);
-                //    }
-
-                //    node.fi = -Number.MAX_VALUE;
-                //    for (var i = 0; i < node.ci.length; i++) {
-                //        node.fi = Math.max(node.fi, node.ci[i] - (node.parent.size * (node.ci.length - i - 1)));
-                //    }
-                //}
             }
         }
-    }
-    //---------------------------------------------------------------------------------------------------//
+        //---------------------------------------------------------------------------------------------------//
 
     // Threshold Ordering ------------------------------------------------------------
     // based on paper http://www.cs.uoi.gr/~charis/files/cutwidth-journal.pdf
-    this.ThesholdOrder = function () {
+    this.ThesholdOrder = function() {
         // Generate the simple graph from compact tree representation
         var simpleNodes = [];
         var simpleLinks = [];
@@ -618,7 +607,7 @@ function myTree() {
         }
 
         var nodes = simpleNodes.slice();
-        nodes.sort(function (a, b) { return a.order - b.order });
+        nodes.sort(function(a, b) { return a.order - b.order });
 
         // run the algorithm
         var n = nodes.length;
@@ -651,14 +640,13 @@ function myTree() {
             this.graph.nodes[i].HaveSeenMiddleVertex = 0;
         }
 
-        simpleNodes.sort(function (a, b) { return a.order - b.order });
+        simpleNodes.sort(function(a, b) { return a.order - b.order });
         var order = 0;
         for (var i = 0; i < simpleNodes.length; i++) {
             if (simpleNodes[i].node.size == 1) {
                 simpleNodes[i].node.order = order;
                 order++;
-            }
-            else if (simpleNodes[i].node.HaveSeenMiddleVertex < Math.floor(simpleNodes[i].node.size / 2)) {
+            } else if (simpleNodes[i].node.HaveSeenMiddleVertex < Math.floor(simpleNodes[i].node.size / 2)) {
                 // we need to find the middle one
                 simpleNodes[i].node.HaveSeenMiddleVertex++;
                 if (simpleNodes[i].node.HaveSeenMiddleVertex == Math.floor(simpleNodes[i].node.size / 2)) {
@@ -673,13 +661,14 @@ function myTree() {
     }
 
     //--------------------------------------
-    this.ArrangeAll = function () {
+    this.ArrangeAll = function() {
         n = gTree.root;
         if (Array.isArray(gTree.root)) {
             n = gTree.root[0];
         }
 
         var count = 0;
+
         function dfs(node, isRight) {
             if (node != null) {
                 var thisleft = node.left ? node.left : node.children;
@@ -714,7 +703,7 @@ function myTree() {
         dfs(n, false);
     }
 
-    this.DynamicCutWidth = function () {
+    this.DynamicCutWidth = function() {
         var min = DynamicAlgorithm.DynamicCutWidth(this.graph, DynamicAlgorithm.fCutWidth);
 
         if (this.graph) {

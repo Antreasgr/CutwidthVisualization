@@ -9,7 +9,7 @@ function linearLayout(graph, svgElement, tree) {
     this.graph = graph;
     this.length = graph.nodes.length;
     this.svgElement = svgElement;
-    this.gElement = svgElement.append("g").attr("id", "plotG");
+    this.gElement = svgElement.append("g");
     this.tree = tree;
 
     //for min Orderings from import
@@ -19,7 +19,7 @@ function linearLayout(graph, svgElement, tree) {
     this.cuts = [];
     var self = this;
 
-    this.addNode = function (child) {
+    this.addNode = function(child) {
         // d must have correct stuff
         this.length++;
 
@@ -34,19 +34,18 @@ function linearLayout(graph, svgElement, tree) {
         this.initialize(this.graph);
     }
 
-    this.updateSize = function () {
+    this.updateSize = function() {
         this.initialize(this.graph);
     }
 
-    this.moveToNextOrdering = function (prev) {
+    this.moveToNextOrdering = function(prev) {
         var changed = false;
         if (prev == true) {
             if (this.minOrderIndex > 0) {
                 this.minOrderIndex--;
                 changed = true;
             }
-        }
-        else {
+        } else {
             if (this.minOrderIndex < this.minOrders.length - 1) {
                 this.minOrderIndex++;
                 changed = true;
@@ -56,7 +55,7 @@ function linearLayout(graph, svgElement, tree) {
         console.log(this.minOrderIndex);
         if (changed) {
             var _this = this;
-            this.graph.nodes.forEach(function (d, i) {
+            this.graph.nodes.forEach(function(d, i) {
                 d.order = _this.minOrders[_this.minOrderIndex][i];
             });
 
@@ -66,7 +65,7 @@ function linearLayout(graph, svgElement, tree) {
 
     }
 
-    this.removeNodes = function (nodes) {
+    this.removeNodes = function(nodes) {
         this.length -= nodes.length;
 
         for (var n = 0; n < nodes.length; n++) {
@@ -94,11 +93,11 @@ function linearLayout(graph, svgElement, tree) {
         this.initialize(this.graph);
     }
 
-    this.getXY = function (datum) {
+    this.getXY = function(datum) {
         return { x: this.xscale(datum.order), y: self.yfixed + datum.y / 10 };
     }
 
-    this.initialize = function () {
+    this.initialize = function() {
         // check if we have many orderings
         if (graph.order && graph.order.length > 0 && graph.order[0].length > 0) {
             this.minOrders = graph.order.slice();
@@ -113,14 +112,13 @@ function linearLayout(graph, svgElement, tree) {
 
         // calculate pixel location for each node
         var that = this;
-        this.graph.nodes.forEach(function (d, i) {
+        this.graph.nodes.forEach(function(d, i) {
             if (d.order != null) {
                 d.r = that.rscale(d.size);
             } else {
                 if (that.graph.order && that.graph.order.length >= that.graph.nodes.length) {
                     d.order = that.graph.order[i];
-                }
-                else {
+                } else {
                     d.order = i;
                 }
                 d.r = that.rscale(d.size);
@@ -133,6 +131,26 @@ function linearLayout(graph, svgElement, tree) {
         // draw nodes last
         this.drawNodes();
 
+        this.drawCutlines();
+
+        this.gElement.selectAll(".maxcut").data([0]).enter().append("text").attr("class", "maxcut").text(function(d) { return d; });
+        this.gElement.selectAll(".maxcut").data([0]).exit().remove();
+
+        this.updateCuts();
+
+        this.drawTooltipsB();
+
+        this.updateHalfLine();
+
+        // create arrow lines
+        this.updateArrows();
+
+        updateDebug(null);
+    }
+
+    this.drawCutlines = function() {
+        return;
+
         var cutLines = []
         for (var i = 0; i < this.graph.nodes.length; i++) {
             cutLines.push(i + 0.5);
@@ -140,27 +158,50 @@ function linearLayout(graph, svgElement, tree) {
 
         var cutlines = this.gElement.selectAll(".cuts").data(cutLines);
 
-        cutlines.transition().duration(500).attr("x1", function (d, i) { return that.xscale(i + 0.5); })
-            .attr("x2", function (d, i) { return that.xscale(i + 0.5); })
+        cutlines.transition().duration(500).attr("x1", function(d, i) { return that.xscale(i + 0.5); })
+            .attr("x2", function(d, i) { return that.xscale(i + 0.5); })
             .attr("y1", self.yfixed - 50)
             .attr("y2", height);
 
         cutlines.enter()
             .append("line")
             .attr("class", "cuts")
-            .attr("x1", function (d, i) { return that.xscale(i + 0.5); })
-            .attr("x2", function (d, i) { return that.xscale(i + 0.5); })
+            .attr("x1", function(d, i) { return self.xscale(i + 0.5); })
+            .attr("x2", function(d, i) { return self.xscale(i + 0.5); })
             .attr("y1", self.yfixed - 50)
             .attr("y2", height);
 
         cutlines.exit().remove();
 
-        this.gElement.selectAll(".maxcut").data([0]).enter().append("text").attr("class", "maxcut").text(function (d) { return d; });
-        this.gElement.selectAll(".maxcut").data([0]).exit().remove();
+        var cutScaler = d3.scale.linear()
+            .domain([d3.min(this.cuts), d3.max(this.cuts)])
+            .range([0, 1]);
 
-        this.updateCuts();
+        colorText = d3.interpolateHsl(d3.rgb("#dadaeb"), d3.rgb("#756bb1"));
 
+        var cutTexts = this.gElement.selectAll(".cutwidths")
+            .data(this.graph.nodes, function(d) { return d.name; });
 
+        cutTexts.transition().duration(500)
+            .text(function(d, i) { return d.cut; })
+            .attr("x", function(d, i) { return self.xscale(d.order + 0.5); })
+            .attr("y", height - 120)
+            .attr("text-anchor", "end")
+            .attr("fill", function(d, i) { return colorText(cutScaler(d.cut)); });
+
+        cutTexts.enter()
+            .append("text")
+            .attr("class", "cutwidths")
+            .text(function(d, i) { return d.cut; })
+            .attr("x", function(d, i) { return self.xscale(d.order + 0.5); })
+            .attr("y", height - 120)
+            .attr("text-anchor", "end")
+            .attr("fill", function(d, i) { return colorText(cutScaler(d.cut)); });
+
+        cutTexts.exit().remove();
+    }
+
+    this.drawTooltipsB = function() {
         // draw bitonic value
         // var tooltipsb = this.gElement.selectAll(".tooltipb").data(this.graph.nodes, function (d) { return d.name; });
 
@@ -180,43 +221,11 @@ function linearLayout(graph, svgElement, tree) {
 
         // tooltipsb.exit().remove();
 
-        var cutScaler = d3.scale.linear()
-            .domain([d3.min(this.cuts), d3.max(this.cuts)])
-            .range([0, 1]);
-
-        colorText = d3.interpolateHsl(d3.rgb("#dadaeb"), d3.rgb("#756bb1"));
-
-        var cutTexts = this.gElement.selectAll(".cutwidths")
-            .data(this.graph.nodes, function (d) { return d.name; });
-
-        cutTexts.transition().duration(500)
-            .text(function (d, i) { return d.cut; })
-            .attr("x", function (d, i) { return that.xscale(d.order + 0.5); })
-            .attr("y", height - 120)
-            .attr("text-anchor", "end")
-            .attr("fill", function (d, i) { return colorText(cutScaler(d.cut)); });
-
-        cutTexts.enter()
-            .append("text")
-            .attr("class", "cutwidths")
-            .text(function (d, i) { return d.cut; })
-            .attr("x", function (d, i) { return that.xscale(d.order + 0.5); })
-            .attr("y", height - 120)
-            .attr("text-anchor", "end")
-            .attr("fill", function (d, i) { return colorText(cutScaler(d.cut)); });
-
-        cutTexts.exit().remove();
-
-        this.updateHalfLine();
-        // create arrow lines
-        this.updateArrows();
-
-        updateDebug(null);
     }
 
-    this.updateHalfLine = function () {
+    this.updateHalfLine = function() {
         var nodesCopy = this.graph.nodes.slice();
-        nodesCopy.sort(function (a, b) { return a.order - b.order });
+        nodesCopy.sort(function(a, b) { return a.order - b.order });
 
         var size = 0;
         for (var i = 0; i < nodesCopy.length; i++) {
@@ -234,14 +243,14 @@ function linearLayout(graph, svgElement, tree) {
 
 
                 halfline.transition().duration(500)
-                    .attr("x1", function (d, i) { return that.xscale(d); })
-                    .attr("x2", function (d, i) { return that.xscale(d); });
+                    .attr("x1", function(d, i) { return that.xscale(d); })
+                    .attr("x2", function(d, i) { return that.xscale(d); });
 
                 halfline.enter()
                     .append("line")
                     .attr("class", "halfline")
-                    .attr("x1", function (d, i) { return that.xscale(d); })
-                    .attr("x2", function (d, i) { return that.xscale(d); })
+                    .attr("x1", function(d, i) { return that.xscale(d); })
+                    .attr("x2", function(d, i) { return that.xscale(d); })
                     .attr("y1", self.yfixed - 80)
                     .attr("y2", self.yfixed + 50);
                 break;
@@ -250,7 +259,7 @@ function linearLayout(graph, svgElement, tree) {
 
     }
 
-    this.rescale = function () {
+    this.rescale = function() {
         var w = this.svgElement.node().getBoundingClientRect().width;
 
         // used to scale node index to x position\
@@ -264,7 +273,7 @@ function linearLayout(graph, svgElement, tree) {
             .range([pad, w - pad]);
 
         this.rscale = d3.scale.linear()
-            .domain([0, d3.max(this.graph.nodes, function (d) { return d.size; })])
+            .domain([0, d3.max(this.graph.nodes, function(d) { return d.size; })])
             .range([4, this.radius]);
 
         // scale to generate radians (just for lower-half of circle)
@@ -272,7 +281,7 @@ function linearLayout(graph, svgElement, tree) {
             .range([3 * Math.PI / 4, 5 * Math.PI / 4]);
     }
 
-    this.updateArrows = function () {
+    this.updateArrows = function() {
         //var that = this;
         //var arrowsRight = this.gElement.selectAll(".arrowR").data(this.graph.nodes);
         //arrowsRight.transition().duration(500)
@@ -310,14 +319,14 @@ function linearLayout(graph, svgElement, tree) {
         //arrowsLeft.exit().remove();
     }
 
-    this.updateCuts = function () {
+    this.updateCuts = function() {
         this.cuts = [];
 
         var that = this;
 
         var nodeArray = new Array(this.length);
 
-        this.gElement.selectAll(".node").each(function (node, i) {
+        this.gElement.selectAll(".node").each(function(node, i) {
             var independentCut = 0;
             var left = 0;
             var right = 0;
@@ -325,22 +334,18 @@ function linearLayout(graph, svgElement, tree) {
             nodeArray[node.order] = node;
 
             that.gElement.selectAll(".link")
-                .each(function (d, i) {
+                .each(function(d, i) {
                     if ((d.source.order > j && d.target.order < j) || (d.source.order < j && d.target.order > j)) {
                         independentCut += d.source.size * d.target.size;
-                    }
-                    else if (d.source.order == j) {
+                    } else if (d.source.order == j) {
                         if (d.target.order < j) {
                             left += d.target.size;
-                        }
-                        else
+                        } else
                             right += d.target.size;
-                    }
-                    else if (d.target.order == j) {
+                    } else if (d.target.order == j) {
                         if (d.source.order < j) {
                             left += d.source.size;
-                        }
-                        else
+                        } else
                             right += d.source.size;
                     }
                 });
@@ -360,8 +365,7 @@ function linearLayout(graph, svgElement, tree) {
                         if (node.order < that.graph.nodes[0].order) {
                             // if is left of U
                             value = pp * (node.size - pp) + pp * (right - that.graph.nodes[0].size) + (node.size - pp) * left + that.graph.nodes[0].size * pp;
-                        }
-                        else if (node.order > that.graph.nodes[0].order) {
+                        } else if (node.order > that.graph.nodes[0].order) {
                             //is right of U
                             value = pp * (node.size - pp) + pp * right + (node.size - pp) * (left - that.graph.nodes[0].size) + that.graph.nodes[0].size * (node.size - pp);
                         }
@@ -388,25 +392,21 @@ function linearLayout(graph, svgElement, tree) {
                         if (fmaxes[0] > node.size - fmaxes[0]) {
                             // Li > Ri
                             node.moveRight = true;
-                        }
-                        else if (fmaxes[0] < node.size - fmaxes[0]) {
+                        } else if (fmaxes[0] < node.size - fmaxes[0]) {
                             node.moveLeft = true;
                         }
                     }
-                }
-                else if (node.order > that.graph.nodes[0].order) {
+                } else if (node.order > that.graph.nodes[0].order) {
                     if (fmaxes.length == 1) {
                         if (fmaxes[0] > node.size - fmaxes[0]) {
                             // Li > Ri
                             node.moveLeft = true;
-                        }
-                        else if (fmaxes[0] < node.size - fmaxes[0]) {
+                        } else if (fmaxes[0] < node.size - fmaxes[0]) {
                             node.moveRight = true;
                         }
                     }
                 }
-            }
-            else {
+            } else {
                 that.cuts.push(0);
             }
         });
@@ -448,42 +448,42 @@ function linearLayout(graph, svgElement, tree) {
         }
 
         var w = this.svgElement.node().getBoundingClientRect().width;
-        d3.select(".maxcut").text(txt).attr("x", w / 2).attr("y", pad + 10);
+        this.gElement.select(".maxcut").text(txt).attr("x", w / 2).attr("y", pad + 10);
         // console.log(txt);
     }
 
     // Draws nodes on plot
-    this.drawNodes = function () {
+    this.drawNodes = function() {
         // used to assign nodes color by group
-        color = d3.scale.category20();
+        color = d3.scale.category10();
 
         var that = this;
 
         var drag = d3.behavior.drag()
-            .origin(function (d) { return d; })
-            .on("dragstart", function (d) { that.dragstart.call(that, this, d); })
-            .on("drag", function (d) { that.dragmove.call(that, d); })
-            .on("dragend", function (d) { that.dragend.call(that, this, d); });
+            .origin(function(d) { return d; })
+            .on("dragstart", function(d) { that.dragstart.call(that, this, d); })
+            .on("drag", function(d) { that.dragmove.call(that, d); })
+            .on("dragend", function(d) { that.dragend.call(that, this, d); });
 
         var node = this.gElement.selectAll(".node")
-            .data(this.graph.nodes, function (d) { return d.name; });
+            .data(this.graph.nodes, function(d) { return d.name; });
 
-        node.transition().duration(500).attr("cx", function (d, i) { return that.getXY(d).x; })
-            .attr("cy", function (d, i) { return that.getXY(d).y; })
-            .attr("r", function (d, i) { return that.rscale(d.size); })
-            .style("fill", function (d, i) { return color(d.group1); })
-            .style("stroke", function (d, i) { if (d.isu == 1) { return "#000"; } });
+        node.transition().duration(500).attr("cx", function(d, i) { return that.getXY(d).x; })
+            .attr("cy", function(d, i) { return that.getXY(d).y; })
+            .attr("r", function(d, i) { return that.rscale(d.size); })
+            .style("fill", function(d, i) { return color(d.group1); })
+            .style("stroke", function(d, i) { if (d.isu == 1) { return "#000"; } });
 
 
         node.enter()
             .append("circle")
             .attr("class", "node")
-            .attr("id", function (d, i) { return d.name; })
-            .attr("cx", function (d, i) { return that.getXY(d).x; })
-            .attr("cy", function (d, i) { return that.getXY(d).y;; })
-            .attr("r", function (d, i) { return that.rscale(d.size); })
-            .style("fill", function (d, i) { return color(d.group1); })
-            .style("stroke", function (d, i) { if (d.isu == 1) { return "#000"; } })
+            .attr("id", function(d, i) { return d.name; })
+            .attr("cx", function(d, i) { return that.getXY(d).x; })
+            .attr("cy", function(d, i) { return that.getXY(d).y;; })
+            .attr("r", function(d, i) { return that.rscale(d.size); })
+            .style("fill", function(d, i) { return color(d.group1); })
+            .style("stroke", function(d, i) { if (d.isu == 1) { return "#000"; } })
             .on("mouseover", this.handleMouseOver)
             .on("mouseout", this.handleMouseOut)
             .call(drag);
@@ -491,62 +491,59 @@ function linearLayout(graph, svgElement, tree) {
         node.exit().remove();
 
         // draw size texts
-        var tooltips = this.gElement.selectAll(".tooltip").data(this.graph.nodes, function (d) { return d.name; });
+        var tooltips = this.gElement.selectAll(".tooltip").data(this.graph.nodes, function(d) { return d.name; });
 
-        tooltips.transition().duration(500).text(function (d) { return d.size; })
-            .attr("x", function (d) { return that.getXY(d).x; })
-            .attr("y", function (d) { return that.getXY(d).y; })
+        tooltips.transition().duration(500).text(function(d) { return d.size; })
+            .attr("x", function(d) { return that.getXY(d).x; })
+            .attr("y", function(d) { return that.getXY(d).y; })
             .attr("dy", -this.radius * 1)
 
         tooltips.enter().append("text")
-            .text(function (d) { return d.size; })
-            .attr("x", function (d) { return that.getXY(d).x; })
-            .attr("y", function (d) { return that.getXY(d).y; })
+            .text(function(d) { return d.size; })
+            .attr("x", function(d) { return that.getXY(d).x; })
+            .attr("y", function(d) { return that.getXY(d).y; })
             .attr("dy", -this.radius * 1)
-            .attr("circle", function (d) { return d.name; })
+            .attr("circle", function(d) { return d.name; })
             .attr("class", "tooltip");
 
         tooltips.exit().remove();
         //fix tooltips offset
-        this.gElement.selectAll(".tooltip").each(function (d) {
+        this.gElement.selectAll(".tooltip").each(function(d) {
             var offset = this.getBBox().width / 2;
 
             if ((d.x - offset) < 0) {
                 d3.select(this).attr("text-anchor", "start");
                 d3.select(this).attr("dx", -radius);
-            }
-            else if ((d.x + offset) > (width - margin)) {
+            } else if ((d.x + offset) > (width - margin)) {
                 d3.select(this).attr("text-anchor", "end");
                 d3.select(this).attr("dx", radius);
-            }
-            else {
+            } else {
                 d3.select(this).attr("text-anchor", "middle");
                 d3.select(this).attr("dx", 0);
             }
         });
     }
 
-    this.handleMouseOver = function (d, i) {
+    this.handleMouseOver = function(d, i) {
         d3.select(this).select("circle").style("stroke", "red");
         self.tree.treeSelection = d;
     }
 
-    this.handleMouseOut = function (d, i) {
+    this.handleMouseOut = function(d, i) {
         d3.select(this).select("circle").style("stroke", "");
         self.tree.treeSelection = null;
     }
 
-    this.moveTo = function (d, newIndex) {
+    this.moveTo = function(d, newIndex) {
         var oldIndex = d.order;
         var that = this;
         var texts = [];
 
         this.gElement.selectAll(".node")
-            .each(function (x, i) {
+            .each(function(x, i) {
                 if (x.order > oldIndex && x.order <= newIndex) {
                     x.order -= 1;
-                }
-                else if (x.order < oldIndex && x.order >= newIndex) {
+                } else if (x.order < oldIndex && x.order >= newIndex) {
                     x.order += 1;
                 }
             });
@@ -555,11 +552,10 @@ function linearLayout(graph, svgElement, tree) {
 
         this.gElement.selectAll(".node")
             .transition().duration(500)
-            .attr("cx", function (dd, i) { return that.getXY(dd).x; })
-            .each(function (x, i) {
+            .attr("cx", function(dd, i) { return that.getXY(dd).x; })
+            .each(function(x, i) {
                 texts[x.order] = x.size;
-            }
-            );
+            });
 
         this.updateHalfLine();
 
@@ -571,18 +567,18 @@ function linearLayout(graph, svgElement, tree) {
             .domain([d3.min(this.cuts), d3.max(this.cuts)])
             .range([0, 1]);
 
-        this.gElement.selectAll(".cutwidths").data(this.graph.nodes, function (d) { return d.name; })
-            .text(function (d, i) { return d.cut; })
-            .attr("x", function (d, i) { return self.xscale(d.order + 0.5); })
+        this.gElement.selectAll(".cutwidths").data(this.graph.nodes, function(d) { return d.name; })
+            .text(function(d, i) { return d.cut; })
+            .attr("x", function(d, i) { return self.xscale(d.order + 0.5); })
             .attr("y", height - 120)
             .attr("text-anchor", "end")
-            .attr("fill", function (d, i) { return colorText(cutScaler(d.cut)); });
+            .attr("fill", function(d, i) { return colorText(cutScaler(d.cut)); });
 
 
-        var tooltips = this.gElement.selectAll(".tooltip").data(this.graph.nodes, function (d) { return d.name; });
-        tooltips.transition().duration(500).text(function (d) { return d.size; })
-            .attr("x", function (d) { return that.getXY(d).x; })
-            .attr("y", function (d) { return that.getXY(d).y; })
+        var tooltips = this.gElement.selectAll(".tooltip").data(this.graph.nodes, function(d) { return d.name; });
+        tooltips.transition().duration(500).text(function(d) { return d.size; })
+            .attr("x", function(d) { return that.getXY(d).x; })
+            .attr("y", function(d) { return that.getXY(d).y; })
             .attr("dy", -this.radius * 1);
 
         // var tooltipsb = this.gElement.selectAll(".tooltipb").data(this.graph.nodes, function (d) { return d.name; });
@@ -594,7 +590,7 @@ function linearLayout(graph, svgElement, tree) {
         this.tree.updateTree();
     }
 
-    this.dragmove = function (d) {
+    this.dragmove = function(d) {
         if (lock)
             return;
         if (self.xscale) {
@@ -614,80 +610,41 @@ function linearLayout(graph, svgElement, tree) {
         }
     }
 
-    this.dragstart = function (d3node, d) {
+    this.dragstart = function(d3node, d) {
         d3.select(d3node)
             .attr("r", d.r * 1.5)
             .attr("cy", self.getXY(d).y - 50);
     }
 
-    this.dragend = function (d3node, d) {
+    this.dragend = function(d3node, d) {
         d3.select(d3node).attr("r", d.r).attr("cy", self.getXY(d).y);
     }
 
     // Draws nice arcs for each link on plot
-    this.drawLinks = function () {
-
-        var that = this;
-        // path generator for arcs (uses polar coordinates)
-        arc = d3.svg.line.radial()
-            .interpolate("basis")
-            .tension(0)
-            .angle(function (d) { return that.radians(d); });
-
+    this.drawLinks = function() {
+        var color = color = d3.scale.category10();
         // add links
-        var linksSel = this.gElement.selectAll(".link")
-            .data(this.graph.links);
+        var linksSel = this.gElement.selectAll(".link").data(this.graph.links);
 
-        linksSel
-            .attr("transform", linkTransform)
-            .attr("d", linkd);
+        linksSel.attr("d", linkd);
 
         linksSel.exit().remove();
 
-        linksSel.enter()
-            .append("path")
-            .attr("class", "link")
-            .attr("transform", linkTransform)
-            .attr("d", linkd);
-    }
-
-    function linkTransform(d, i) {
-        var x1 = self.getXY(d.source).x;
-        var x2 = self.getXY(d.target).x;
-        var y1 = self.getXY(d.source).y;
-        if (x1 > x2){
-            var tmp = x1;
-            x1 = x2;
-            x2 = tmp;
-        }
-
-        // get x distance between source and target
-        var xdist = x2 - x1;
-
-        // set arc radius based on x distance
-        var r = xdist * Math.SQRT1_2;
-
-        // arc will always be drawn around (0, 0)
-        var xshift = x1 + r * Math.sin(Math.PI / 4);
-        var yshift = y1 + 50 - r * Math.cos(Math.PI / 4);
-        console.log(y1);
-        return "translate(" + xshift + ", " + yshift + ")";
+        linksSel.enter().append("path").attr("class", "link")
+            .attr("d", linkd)
+            .attr("stroke-width", function(d) { return d.source.size * d.target.size / 10.0; })
+            .attr("stroke", function(d) { return color(d.target.group1); })
     }
 
     function linkd(d, i) {
-        // get x distance between source and target
-        var xdist = Math.abs(self.getXY(d.source).x - self.getXY(d.target).x);
-
-        // set arc radius based on x distance
-        arc.radius(xdist / 2);
-
-        // want to generate 1/3 as many points per pixel in x direction
-        var points = d3.range(0, Math.ceil(xdist / 3));
-
-        // set radian scale domain
-        self.radians.domain([0, points.length - 1]);
-
-        // return path for arc
-        return arc(points);
+        var dx = self.getXY(d.target).x - self.getXY(d.source).x,
+            dy = self.getXY(d.target).y - self.getXY(d.source).y,
+            dr = Math.sqrt(dx * dx + dy * dy);
+        return "M" +
+            self.getXY(d.source).x + "," +
+            self.getXY(d.source).y + "A" +
+            dr + "," + dr + " 0 0,1 " +
+            self.getXY(d.target).x + "," +
+            self.getXY(d.target).y;
     }
 }

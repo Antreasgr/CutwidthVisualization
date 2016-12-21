@@ -14,719 +14,292 @@
     <!--<link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,900|Source+Code+Pro:300" rel="stylesheet" type="text/css">-->
     <!--<link href="http://fonts.googleapis.com/css?family=Helvetica%20Neue:300,900" rel="stylesheet" type="text/css">
     <link href="http://fonts.googleapis.com/css?family=Open%20Sans:300,900" rel="stylesheet" type="text/css">-->
+    <link href="style.css" rel="stylesheet" type="text/css">
 
-    <style>
-        .treenode > text {}
-        
-        body {
-            /*font-family: 'Source Sans Pro', sans-serif;*/
-            font-weight: 300;
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-            font-size: 14px;
-            line-height: 1.42857;
-            margin: 0px;
-        }
-        
-        .container {
-            margin: 10px;
-        }
-        .col {
-            height: 350px;
-            float: left;
-            overflow: auto;
-        }
 
-        .col-1 {
-            width:20%;
-        }
+    <script src="dynamic-algorithm.js"></script>
+    <script src="bipartite.js"></script>
+    <script src="qtGraph.js"></script>
+    <script src="linearLayout.js"></script>
+    <script>
+        /* GLOBALS */
+        var margin = 80; // amount of margin around plot area
+        var width = window.innerWidth; // width of svg image
+        var height = window.innerHeight - margin; // height of svg image
 
-        .col-2 {
-            width:20%;
-        }
-        svg {
-            display: block;
-            overflow: auto;
-            width: 100%;
-            height: 100%;
-        }
-        
-        .arrowR,
-        .arrowL {
-            fill: none;
-            stroke: #888888;
-            stroke-opacity: 1.0;
-            stroke-width: 2px;
-        }
-        
-        .tooltipb {
-            /*display: none;*/
-        }
-        
-        .background {
-            background-color: #F1F2F6;
-        }
-        
-        .well {
-            position: absolute;
-            top: 50px;
-            width: 90%;
-            height: 60%;
-            padding: 10px;
-            margin: 0 auto;
-            color: #434A54;
-            background-color: #FFF;
-            border: medium none;
-            border-radius: 4px;
-            box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.2);
-        }
-        
-        .well h2 {
-            color: #434A54;
-            background-color: #E6E9ED;
-            border-color: #E6E9ED;
-            text-align: center;
-            border-radius: 4px 4px 0px 0px;
-            padding: 10px 15px;
-            border-bottom: 1px solid transparent;
-        }
-        
-        .debug {
-            right: 0px;
-            width: auto;
-            bottom: 0px;
-            top: auto;
-            height: auto;
-        }
-        
-        .jsonexport {
-            width: 100%;
-            height: 70%;
-        }
-        
-        .btn {
-            color: #FFF;
-            padding: 6px 12px;
-            margin-bottom: 0px;
-            font-size: 14px;
-            font-weight: 400;
-            line-height: 1.42857;
-            text-align: center;
-            white-space: nowrap;
-            vertical-align: middle;
-            cursor: pointer;
-            -moz-user-select: none;
-            user-select: none;
-            background-image: none;
-            border: 1px solid transparent;
-            border-radius: 4px;
-        }
-        
-        .btn,
-        .btn.disabled,
-        .btn[disabled] {
-            background-color: #aab2bd;
-            border-color: #aab2bd;
-        }
-        
-        .btn.disabled,
-        .btn[disabled] {
-            filter: alpha(opacity=45);
-            opacity: .45;
-        }
-        
-        .btn-link,
-        .btn-link:hover,
-        .btn-link:focus,
-        .btn-link:active,
-        .btn-link.active,
-        .btn-link.disabled,
-        .btn-link[disabled] {
-            color: #3bafda;
-            background-color: transparent;
-            border-color: transparent;
-            -webkit-box-shadow: none;
-            -moz-box-shadow: none;
-            box-shadow: none;
-        }
-        
-        .btn-default:hover,
-        .btn-default:focus,
-        .btn-default:active,
-        .btn-default.active {
-            background-color: #ccd1d9;
-            border-color: #ccd1d9;
-        }
-        
-        .btn-default,
-        .btn-default.disabled,
-        .btn-default[disabled] {
-            background-color: white;
-            color: #333;
-        }
-        
-        .open .dropdown-toggle.btn-default {
-            background-color: #ccd1d9;
-            border-color: #ccd1d9;
-        }
-        
-        .btn-primary,
-        .btn-primary:active,
-        .btn-primary.active,
-        .btn-primary.disabled,
-        .btn-primary[disabled] {
-            background-color: #3bafda;
-            border-color: #3bafda;
-        }
-        
-        .btn-primary:hover,
-        .btn-primary:focus {
-            background-color: #4fc1e9;
-            border-color: #4fc1e9;
-        }
-        
-        .open .dropdown-toggle.btn-primary {
-            background-color: #4fc1e9;
-            border-color: #4fc1e9;
-        }
-        
-        .btn-info,
-        .btn-info:active,
-        .btn-info.active,
-        .btn-info.disabled,
-        .btn-info[disabled] {
-            background-color: #37bc9b;
-            border-color: #37bc9b;
-        }
-        
-        .btn-info:hover,
-        .btn-info:focus {
-            background-color: #48cfad;
-            border-color: #48cfad;
-        }
-        
-        .open .dropdown-toggle.btn-info {
-            background-color: #48cfad;
-            border-color: #48cfad;
-        }
-        
-        .btn-success,
-        .btn-success:active,
-        .btn-success.active,
-        .btn-success.disabled,
-        .btn-success[disabled] {
-            background-color: #8cc152;
-            border-color: #8cc152;
-        }
-        
-        .btn-success:hover,
-        .btn-success:focus {
-            background-color: #a0d468;
-            border-color: #a0d468;
-        }
-        
-        .open .dropdown-toggle.btn-success {
-            background-color: #a0d468;
-            border-color: #a0d468;
-        }
-        
-        .btn-warning,
-        .btn-warning:active,
-        .btn-warning.active,
-        .btn-warning.disabled,
-        .btn-warning[disabled] {
-            background-color: #f6bb42;
-            border-color: #f6bb42;
-        }
-        
-        .btn-warning:hover,
-        .btn-warning:focus {
-            background-color: #ffce54;
-            border-color: #ffce54;
-        }
-        
-        .open .dropdown-toggle.btn-warning {
-            background-color: #ffce54;
-            border-color: #ffce54;
-        }
-        
-        .btn-danger,
-        .btn-danger:active,
-        .btn-danger.active,
-        .btn-danger.disabled,
-        .btn-danger[disabled],
-        .btn-danger .open .dropdown-toggle.btn {
-            background-color: #da4453;
-            border-color: #da4453;
-        }
-        
-        .btn-danger:hover,
-        .btn-danger:focus {
-            background-color: #ed5565;
-            border-color: #ed5565;
-        }
-        
-        .open .dropdown-toggle.btn-danger {
-            background-color: #ed5565;
-            border-color: #ed5565;
-        }
-        
-        .btn-group > .btn:first-child:not(:last-child):not(.dropdown-toggle) {
-            border-top-right-radius: 0px;
-            border-bottom-right-radius: 0px;
-        }
-        
-        .btn-group .btn-danger:first-child,
-        .btn-group .btn-info:first-child,
-        .btn-group .btn-primary:first-child,
-        .btn-group .btn-success:first-child,
-        .btn-group .btn-warning:first-child,
-        .btn-group .btn:first-child {
-            border-left-color: transparent;
-        }
-        
-        .btn-group > .btn:first-child {
-            margin-left: 0px;
-        }
-        
-        .btn-group .btn {
-            border-left-color: #96A0AD;
-        }
-        
-        .btn-group-vertical > .btn,
-        .btn-group > .btn {
-            position: relative;
-            float: left;
-        }
-        
-        .btn-group > .btn:not(:first-child):not(:last-child):not(.dropdown-toggle) {
-            border-radius: 0px;
-        }
-        
-        .btn-group .btn + .btn,
-        .btn-group .btn + .btn-group,
-        .btn-group .btn-group + .btn,
-        .btn-group .btn-group + .btn-group {
-            margin-left: -1px;
-        }
-        
-        .btn-group > .btn:last-child:not(:first-child),
-        .btn-group > .dropdown-toggle:not(:first-child) {
-            border-top-left-radius: 0px;
-            border-bottom-left-radius: 0px;
-        }
-        
-        .btn-group,
-        .btn-group-vertical {
-            position: relative;
-            display: inline-block;
-            vertical-align: middle;
-        }
-        
-        .left-space {
-            padding-left: 25px;
-        }
-        
-        input[type="text"] {
-            width: 70%;
-            height: 34px;
-            font-size: 14px;
-            line-height: 1.42857143;
-            color: #555;
-            background-color: #fff;
-            background-image: none;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
-            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
-            -webkit-transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;
-            -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
-            transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
-        }
-        
-        input:focus {
-            border-color: #66afe9;
-            outline: 0;
-            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
-            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
-        }
-        
-        input::-moz-placeholder {
-            color: #999;
-            opacity: 1;
-        }
-        
-        b {
-            font-weight: 900;
-        }
-        
-        .outline {
-            fill: none;
-            stroke: #888888;
-            stroke-width: 1px;
-        }
-        
-        .tooltip,
-        .tooltipb {
-            font-size: 10pt;
-            font-weight: 900;
-            fill: #000000;
-            stroke: #ffffff;
-            stroke-width: 0.25px;
-            cursor: pointer;
-        }
-        
-        .cutwidths {
-            font-weight: 600;
-        }
-        
-        .node {
-            stroke: #ffffff;
-            stroke-width: 2px;
-        }
-        
-        .node:hover {
-            stroke: red !important;
-            stroke-opacity: 1.0;
-        }
-        
-        .link,
-        .treelink,
-        .bp-link {
-            fill: none;
-            stroke: #888888;
-            stroke-weight: 1px;
-        }
-        
-        .highlight {
-            stroke: red;
-            stroke-weight: 4px;
-            stroke-opacity: 1.0;
-        }
-        
-        .cuts {
-            stroke-dasharray: 5, 5, 5, 5, 5, 5, 10, 5, 10, 5, 10, 5;
-            stroke: #30BD4B;
-            stroke-width: 1px;
-        }
-        
-        .halfline {
-            stroke: rgba(102, 175, 233, .6);
-            stroke-width: 1px;
-        }
-        
-        .maxcut {
-            font-size: 35pt;
-            font-weight: 900;
-            fill: #000000;
-            stroke: #ffffff;
-            stroke-width: 0.25px;
-            text-anchor: middle;
-        }
-        
-        .treenode circle {
-            fill: #fff;
-            stroke: steelblue;
-            stroke-width: 3px;
-        }
-        
-        .treenode circle:hover {
-            stroke: #4E606F;
-        }
-        
-        .treenode.active {
-            stroke: #4E60fF;
-        }
-        
-        svg {}
-        
-        code {
-            padding: 2px 4px;
-            color: #D14;
-            white-space: nowrap;
-            background-color: #F7F7F9;
-            border: 1px solid #E1E1E8;
-            font-family: Monaco, Meno, Consolas, "Courier New", monospace;
-            border-radius: 3px;
-            font-size: 12px;
-        }
-        
-        .debugul li {
-            margin: 15px;
-        }
-        
-        .debugul.orders li {
-            margin: 0px;
-            margin-left: 15px;
-        }
-        
-        .debugul.orders li.selected {
-            list-style: circle;
-        }
-        
-        .debugul {
-            margin: 0px;
-            padding: 0px;
-            list-style: none;
-            overflow: auto;
-            max-width: 400px;
-        }
-        
-        .help li {
-            margin: 15px;
-        }
-        
-        .code-green {
-            color: #3C763D;
-        }
-    </style>
+        var pad = margin / 3; // actual padding amount
+        // var yfixed = pad + 10 + 80;  // y position for all nodes
 
-<script src="dynamic-algorithm.js"></script>
-<script src="bipartite.js"></script>
-<script src="qtGraph.js"></script>
-<script src="linearLayout.js"></script>
-<script>
-    /* GLOBALS */
-    var margin = 80;            // amount of margin around plot area
-    var width = window.innerWidth;           // width of svg image
-    var height = window.innerHeight - margin;           // height of svg image
+        var arc = null;
+        var color = null;
+        var colorText = null;
 
-    var pad = margin / 3;       // actual padding amount
-    // var yfixed = pad + 10 + 80;  // y position for all nodes
+        var lock = false;
+        var gGraph = null;
 
-    var arc = null;
-    var color = null;
-    var colorText = null;
+        function updateDebug(d) {
+            var ord = "";
+            if (gLinear.minOrders != null) {
+                ord = "<ul class='debugul orders'>";
+                gLinear.minOrders.forEach(function(el, i) {
+                    if (i == gLinear.minOrderIndex) {
+                        ord += '<li class="selected">[' + el.join(",") + ']</li>';
+                    } else
+                        ord += '<li>[' + el.join(",") + ']</li>';
+                });
 
-    var lock = false;
-    var gGraph = null;
-
-    function updateDebug(d) {
-        var ord = "";
-        if (gLinear.minOrders != null) {
-            ord = "<ul class='debugul orders'>";
-            gLinear.minOrders.forEach(function (el, i) {
-                if (i == gLinear.minOrderIndex) {
-                    ord += '<li class="selected">[' + el.join(",") + ']</li>';
-                }
-                else
-                    ord += '<li>[' + el.join(",") + ']</li>';
-            });
-
-            ord += "</ul>";
-        }
-
-        if (d) {
-            var c = d.size;
-            if (d.children) {
-                for (var i = 0; i < d.children.length; i++) {
-                    c += d.children[i].size;
-                }
+                ord += "</ul>";
             }
-            ord += "<span>" + c + "</span>";
-        }
 
-        $(".well.debug div").html(ord);
-        return;
+            if (d) {
+                var c = d.size;
+                if (d.children) {
+                    for (var i = 0; i < d.children.length; i++) {
+                        c += d.children[i].size;
+                    }
+                }
+                ord += "<span>" + c + "</span>";
+            }
 
-        if (!d)
+            $(".well.debug div").html(ord);
             return;
 
-        var s = "";
-        if (d) {
-            s += "<ul class='debugul'>";
-            s += "<li><span>Node.Size: </span>" + d.size + "</li>";
-            if (d.fi != null) {
-                s += "<li><span>Node.Fi: </span>" + d.fi + "</li>";
-            }
-            if (d.ci != null) {
-                s += "<li><span>Node.Ci: </span>[" + d.ci.join(",") + "]" + "</li>";
-                if (d.parent) {
-                    var uRi = [];
-                    var uLi = [];
-                    for (var i = 0; i < d.ci.length; i++) {
+            if (!d)
+                return;
 
-                        uRi.push(d.ci[i] + (d.parent.size * (d.ci.length - i - 1)));
-                        uLi.push(d.ci[i] + (d.parent.size * (i + 1)));
+            var s = "";
+            if (d) {
+                s += "<ul class='debugul'>";
+                s += "<li><span>Node.Size: </span>" + d.size + "</li>";
+                if (d.fi != null) {
+                    s += "<li><span>Node.Fi: </span>" + d.fi + "</li>";
+                }
+                if (d.ci != null) {
+                    s += "<li><span>Node.Ci: </span>[" + d.ci.join(",") + "]" + "</li>";
+                    if (d.parent) {
+                        var uRi = [];
+                        var uLi = [];
+                        for (var i = 0; i < d.ci.length; i++) {
+
+                            uRi.push(d.ci[i] + (d.parent.size * (d.ci.length - i - 1)));
+                            uLi.push(d.ci[i] + (d.parent.size * (i + 1)));
+                        }
+
+                        s += "<li><span>Node.uRi: </span>[" + uRi.join(",") + "]" + "</li>";
+                        s += "<li><span>Node.uLi: </span>[" + uLi.join(",") + "]" + "</li>";
                     }
+                }
 
-                    s += "<li><span>Node.uRi: </span>[" + uRi.join(",") + "]" + "</li>";
-                    s += "<li><span>Node.uLi: </span>[" + uLi.join(",") + "]" + "</li>";
+                if (d.minCW != null) {
+                    s += "<li><span>Node.Minimum Cut: </span>[" + d.minCW.Value + "]" + "</li>";
+                }
+
+
+                s += "</ul>";
+            }
+
+            $(".well.debug div").html(s);
+        }
+
+        var gTree = null;
+        var gLinear = null;
+        var newLinearLayout = null;
+
+        $(document).ready(function() {
+            //arcDiagram({ "nodes": [{ "name": "n0", "parent": null, "size": 4 }], "links": [] });
+            arcDiagram(randomGraph());
+
+            window.addEventListener('resize', function(event) {
+                margin = 80; // amount of margin around plot area
+                width = window.innerWidth; // width of svg image
+                height = window.innerHeight - margin; // height of svg image
+
+                pad = margin / 3; // actual padding amount
+                radius = 10; // fixed node radius
+                yfixed = pad + radius + 80; // y position for all nodes
+
+                // d3.select("svg").attr("width", window.innerWidth).attr("height", height);
+                // plot.attr("transform", "translate(" + window.innerWidth * 0.8 + "," + pad + ")");
+
+                gTree.resizeTree();
+                gLinear.updateSize();
+            });
+        });
+
+        function getRandomIntInclusive(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function randomGraph() {
+            var numOfNodes = 6;
+            var maxSize = 4;
+            var minSize = 1;
+            var links = [];
+            var nodes = [];
+
+            var size = getRandomIntInclusive(minSize, maxSize);
+            var root = {
+                name: "n0",
+                parent: null,
+                size: size
+            };
+            nodes.push(root);
+
+            numOfNodes--;
+
+            var i = 1;
+            for (var k = 0; k < nodes.length; k++) {
+                var parentIndex = k;
+
+                var numOfChildren = getRandomIntInclusive(2, numOfNodes - 1);
+                if (numOfChildren == numOfNodes - 1) {
+                    numOfChildren = numOfNodes;
+                }
+
+                numOfNodes -= numOfChildren;
+
+                for (var j = 0; j < numOfChildren; j++) {
+                    var size = getRandomIntInclusive(minSize, maxSize);
+                    nodes.push({
+                        name: "n" + i,
+                        parent: nodes[parentIndex].name,
+                        size: size
+                    });
+                    links.push({
+                        source: i,
+                        target: parentIndex
+                    });
+
+                    var parentName = nodes[parentIndex].parent;
+                    while (parentName != null) {
+                        var grandParentIndex = nodes.map(function(e) {
+                            return e.name;
+                        }).indexOf(parentName);
+                        if (grandParentIndex != -1) {
+                            links.push({
+                                source: i,
+                                target: grandParentIndex
+                            });
+                            parentName = nodes[grandParentIndex].parent;
+                        } else {
+                            break;
+                        }
+                    }
+                    i++;
+                }
+
+                if (numOfNodes <= 1) {
+                    break;
                 }
             }
 
-            if (d.minCW != null) {
-                s += "<li><span>Node.Minimum Cut: </span>[" + d.minCW.Value + "]" + "</li>";
-            }
-
-
-            s += "</ul>";
+            return {
+                nodes: nodes,
+                links: links
+            };
         }
 
-        $(".well.debug div").html(s);
-    }
+        // Draws an arc diagram for the provided undirected graph
+        function arcDiagram(graph) {
+            // create svg image
+            gGraph = graph;
 
-    var gTree = null;
-    var gLinear = null;
+            d3.select("svg").remove();
 
-    $(document).ready(function () {
-        //arcDiagram({ "nodes": [{ "name": "n0", "parent": null, "size": 4 }], "links": [] });
-        arcDiagram(randomGraph());
+            // var svg = d3.select("body")
+            //     .append("svg")
+            //     .attr("id", "arc")
+            //     .attr("width", window.innerWidth)
+            //     .attr("height", height);
 
-        window.addEventListener('resize', function (event) {
-            margin = 80;            // amount of margin around plot area
-            width = window.innerWidth;           // width of svg image
-            height = window.innerHeight - margin;           // height of svg image
+            // svgDefs(svg);
 
-            pad = margin / 3;       // actual padding amount
-            radius = 10;             // fixed node radius
-            yfixed = pad + radius + 80;  // y position for all nodes
+            // create plot area within svg
+            plotLinear = d3.select("#lin-cont")
+                .append("svg")
+                .attr("id", "plot")
+                // .attr("width", window.innerWidth * 0.8)
+                // .attr("height", height)
+                // .append("g")
+                // .attr("id", "plotG");
 
-            // d3.select("svg").attr("width", window.innerWidth).attr("height", height);
 
-            // plot.attr("transform", "translate(" + window.innerWidth * 0.8 + "," + pad + ")");
+            // fix graph links to map to objects instead of indices
+            graph.links.forEach(function(d, i) {
+                d.source = isNaN(d.source) ? d.source : graph.nodes[d.source];
+                d.target = isNaN(d.target) ? d.target : graph.nodes[d.target];
+            });
 
-            gTree.resizeTree();
-            gLinear.updateSize();
-        });
-    });
+            plot = d3.select("#tree-cont")
+                .append("svg")
+                .attr("id", "tree")
+                .append("g")
+                .attr("transform", "translate(0, 50)");
 
-    function getRandomIntInclusive(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
 
-    function randomGraph() {
-        var numOfNodes = 10;
-        var maxSize = 6;
-        var minSize = 1;
-        var links = []; var nodes = [];
+            gTree = new myTree();
+            gTree.createTree(graph);
+            gTree.updateTree(gTree.root);
 
-        var size = getRandomIntInclusive(minSize, maxSize);
-        var root = { name: "n0", parent: null, size: size };
-        nodes.push(root);
+            gLinear = new linearLayout(graph, plotLinear, gTree);
+            gLinear.initialize(graph);
 
-        numOfNodes--;
+            var lvl1Links = graph.links.filter(function(e) {
+                var d1 = Math.max(e.source.depth, e.target.depth);
+                var d2 = Math.min(e.source.depth, e.target.depth);
+                return d2 == 0;
+            });
 
-        var i = 1;
-        for (var k = 0; k < nodes.length; k++) {
-            var parentIndex = k;
+            var plot2Linear = d3.select("#lin2-cont")
+                .append("svg")
+                .attr("id", "plot");
 
-            var numOfChildren = getRandomIntInclusive(2, numOfNodes - 1);
-            if (numOfChildren == numOfNodes - 1) {
-                numOfChildren = numOfNodes;
-            }
+            newLinearLayout = new linearLayout({
+                nodes: graph.nodes,
+                links: lvl1Links
+            }, plot2Linear, gTree);
 
-            numOfNodes -= numOfChildren;
+            newLinearLayout.initialize(graph);
 
-            for (var j = 0; j < numOfChildren; j++) {
-                var size = getRandomIntInclusive(minSize, maxSize);
-                nodes.push({ name: "n" + i, parent: nodes[parentIndex].name, size: size });
-                links.push({ source: i, target: parentIndex });
+            // var plotBipartite = svg.append("g").attr("id", "bipartite").attr("transform", "translate(" + window.innerWidth * 0.8 + "," + (pad + 250) + ")");
 
-                var parentName = nodes[parentIndex].parent;
-                while (parentName != null) {
-                    var grandParentIndex = nodes.map(function (e) { return e.name; }).indexOf(parentName);
-                    if (grandParentIndex != -1) {
-                        links.push({ source: i, target: grandParentIndex });
-                        parentName = nodes[grandParentIndex].parent;
-                    } else {
-                        break;
-                    }
-                }
-                i++;
-            }
+            // bpGraph = new BipartiteGraph(graph, plotBipartite);
+            // bpGraph.createBipartiteGraph();
+            // bpGraph.drawGraph();
 
-            if (numOfNodes <= 1) {
-                break;
-            }
+            // get keyboard events
+            //d3.select(window).on("keydown", null).on("keyup", null);
+
+            d3.select(window).on("keydown", function() {
+                gTree.svgKeyDown.call(gTree);
+            }).on("keyup", function() {
+                gTree.svgKeyUp.call(gTree);
+            });
         }
 
-        return { nodes: nodes, links: links };
-    }
+        function svgDefs(svg) {
+            var leftgrad = svg.append("defs").append("linearGradient").attr("id", "leftgrad").attr("x1", "0%").attr("x2", "100%").attr("y1", "0%").attr("y2", "0%");
+            leftgrad.append("stop").attr("offset", "50%").style("stop-color", "#37BC9B");
+            leftgrad.append("stop").attr("offset", "50%").style("stop-color", "#fff");
 
-    // Draws an arc diagram for the provided undirected graph
-    function arcDiagram(graph) {
-        // create svg image
-        gGraph = graph;
+            var rightgrad = svg.append("defs").append("linearGradient").attr("id", "rightgrad").attr("x1", "100%").attr("x2", "0%").attr("y1", "0%").attr("y2", "0%");
+            rightgrad.append("stop").attr("offset", "50%").style("stop-color", "#37BC9B");
+            rightgrad.append("stop").attr("offset", "50%").style("stop-color", "#fff");
 
-        d3.select("svg").remove();
-
-        // var svg = d3.select("body")
-        //     .append("svg")
-        //     .attr("id", "arc")
-        //     .attr("width", window.innerWidth)
-        //     .attr("height", height);
-
-        // svgDefs(svg);
-
-        // create plot area within svg
-        plotLinear = d3.select("#lin-cont")
-            .append("svg")
-            .attr("id", "plot")
-            // .attr("width", window.innerWidth * 0.8)
-            // .attr("height", height)
-            // .append("g")
-            // .attr("id", "plotG");
-
-
-        // fix graph links to map to objects instead of indices
-        graph.links.forEach(function (d, i) {
-            d.source = isNaN(d.source) ? d.source : graph.nodes[d.source];
-            d.target = isNaN(d.target) ? d.target : graph.nodes[d.target];
-        });
-
-        plot = d3.select("#tree-cont")
-            .append("svg")
-            .attr("id", "tree")
-            .append("g")
-            .attr("transform", "translate(0, 50)");
-
-
-        gTree = new myTree();
-        gTree.createTree(graph);
-        gTree.updateTree(gTree.root);
-
-        gLinear = new linearLayout(graph, plotLinear, gTree);
-        gLinear.initialize(graph);
-
-        // var plotBipartite = svg.append("g").attr("id", "bipartite").attr("transform", "translate(" + window.innerWidth * 0.8 + "," + (pad + 250) + ")");
-
-        // bpGraph = new BipartiteGraph(graph, plotBipartite);
-        // bpGraph.createBipartiteGraph();
-        // bpGraph.drawGraph();
-
-        // get keyboard events
-        //d3.select(window).on("keydown", null).on("keyup", null);
-
-        d3.select(window).on("keydown", function () {
-            gTree.svgKeyDown.call(gTree);
-        }).on("keyup", function () {
-            gTree.svgKeyUp.call(gTree);
-        });
-    }
-
-    function svgDefs(svg) {
-        var leftgrad = svg.append("defs").append("linearGradient").attr("id", "leftgrad").attr("x1", "0%").attr("x2", "100%").attr("y1", "0%").attr("y2", "0%");
-        leftgrad.append("stop").attr("offset", "50%").style("stop-color", "#37BC9B");
-        leftgrad.append("stop").attr("offset", "50%").style("stop-color", "#fff");
-
-        var rightgrad = svg.append("defs").append("linearGradient").attr("id", "rightgrad").attr("x1", "100%").attr("x2", "0%").attr("y1", "0%").attr("y2", "0%");
-        rightgrad.append("stop").attr("offset", "50%").style("stop-color", "#37BC9B");
-        rightgrad.append("stop").attr("offset", "50%").style("stop-color", "#fff");
-
-        svg.append("defs").append("svg:marker")
-            .attr("id", "arrow")
-            .attr("viewBox", "0 0 10 10")
-            .attr("refY", 5)
-            .attr("refX", 1)
-            .attr("markerUnits", "strokeWidth")
-            .attr("markerWidth", 6)
-            .attr("markerHeight", 5)
-            .attr("orient", "auto")
-            .append("polyline")
-            .attr("points", "0,0 10,5 0,10 1,5")
-            .attr("fill", "#c00");
-    }
-</script>
+            svg.append("defs").append("svg:marker")
+                .attr("id", "arrow")
+                .attr("viewBox", "0 0 10 10")
+                .attr("refY", 5)
+                .attr("refX", 1)
+                .attr("markerUnits", "strokeWidth")
+                .attr("markerWidth", 6)
+                .attr("markerHeight", 5)
+                .attr("orient", "auto")
+                .append("polyline")
+                .attr("points", "0,0 10,5 0,10 1,5")
+                .attr("fill", "#c00");
+        }
+    </script>
 </head>
 
 <body class="background">
@@ -757,19 +330,13 @@
                     <li><code>Alt + Click</code> on a node in the tree to remove it and it's children.</li>
                     <li><code>Mouseover</code> on a node and press <code>+</code> or <code>-</code> to adjust its size</li>
                     <li><code>Shift + ,</code> or <code>Shift + .</code> to move to the next/previous order saved in input file.</li>
-                    <li><code>Mouseover</code> on a node and press <code>o</code> to find an order for that node and its children
-                        using the bitonic algorithm as proposed by us. <code>Non optimal</code> for every graph except 1-level
-                        quasi-threshold
+                    <li><code>Mouseover</code> on a node and press <code>o</code> to find an order for that node and its children using the bitonic algorithm as proposed by us. <code>Non optimal</code> for every graph except 1-level quasi-threshold
                     </li>
-                    <li>Press <code>Shift + D</code> to find a linear ordering using the <i>Dynamic Programming</i> algorithm
-                        as proposed by <a href="http://users.uoa.gr/~sedthilk/papers/notexact.pdf">A Note on Exact Algorithms for Vertex Ordering Problems on Graphs</a>                        in <code>O(2<sup>N</sup>)</code> time and space. <code class="code-green">Optimal</code> for every
-                        graph
+                    <li>Press <code>Shift + D</code> to find a linear ordering using the <i>Dynamic Programming</i> algorithm as proposed by <a href="http://users.uoa.gr/~sedthilk/papers/notexact.pdf">A Note on Exact Algorithms for Vertex Ordering Problems on Graphs</a>                        in <code>O(2<sup>N</sup>)</code> time and space. <code class="code-green">Optimal</code> for every graph
                     </li>
-                    <li>Press <code>Shift + T</code> to find a linear ordering using the using the <i>Threshold Algorithm</i>                        for threshold graphs as proposed by <a href="http://www.cs.uoi.gr/~charis/files/cutwidth-journal.pdf">Cutwidth of split graphs and threshold graphs</a>                        in <code class="code-green">O(n)</code> time. <code class="code-green">Optimal</code> only for threshold
-                        graph
+                    <li>Press <code>Shift + T</code> to find a linear ordering using the using the <i>Threshold Algorithm</i> for threshold graphs as proposed by <a href="http://www.cs.uoi.gr/~charis/files/cutwidth-journal.pdf">Cutwidth of split graphs and threshold graphs</a>                        in <code class="code-green">O(n)</code> time. <code class="code-green">Optimal</code> only for threshold graph
                     </li>
-                    <li><code>~</code> to open up debug information. Then <code>Mouseover</code> a node to see it's specified
-                        debug info.</li>
+                    <li><code>~</code> to open up debug information. Then <code>Mouseover</code> a node to see it's specified debug info.</li>
                 </ul>
             </p>
         </div>
@@ -780,27 +347,27 @@
         </div>
     </div>
     <div id="lin-cont" class="col col-1"></div>
+    <div id="lin2-cont" class="col col-1"></div>
     <div id="tree-cont" class="col col-2"></div>
 
     <script>
-        $("#load").click(function () {
+        $("#load").click(function() {
             d3.json($("#filename").val(), arcDiagram);
         });
         $(".well.export").hide();
         $(".well.help").hide();
         $(".well.debug").hide();
 
-        $("#btnExport").click(function () {
+        $("#btnExport").click(function() {
             if ($(".well.export").is(':visible')) {
                 $(".well.export").slideUp();
                 $("#btnExport").html("Export");
-            }
-            else {
+            } else {
                 var n = [];
                 var l = [];
                 var lookup = {};
                 var order = [];
-                gLinear.graph.nodes.forEach(function (el, i) {
+                gLinear.graph.nodes.forEach(function(el, i) {
                     n.push({
                         "name": el.name,
                         "parent": el.parent != null ? el.parent.name : null,
@@ -811,14 +378,18 @@
                     order.push(el.order);
                 });
 
-                gLinear.graph.links.forEach(function (el, i) {
+                gLinear.graph.links.forEach(function(el, i) {
                     l.push({
                         "source": lookup[el.source.name],
                         "target": lookup[el.target.name],
                     })
                 });
 
-                var g = { "nodes": n, "links": l, "order": order };
+                var g = {
+                    "nodes": n,
+                    "links": l,
+                    "order": order
+                };
 
                 if (gLinear.graph.minimumCutwidth) {
                     g.minimumCutwidth = gLinear.graph.minimumCutwidth;
@@ -833,12 +404,11 @@
             }
         });
 
-        $("#btnHelp").click(function () {
+        $("#btnHelp").click(function() {
             if ($(".well.help").is(':visible')) {
                 $(".well.help").slideUp();
                 $("#btnHelp").html("Help");
-            }
-            else {
+            } else {
 
                 $("#btnHelp").html("Close");
 
