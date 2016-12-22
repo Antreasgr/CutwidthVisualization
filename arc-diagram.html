@@ -36,74 +36,17 @@
 
         var lock = false;
         var gGraph = null;
+        var layouts = [];
 
-        function updateDebug(d) {
-            var ord = "";
-            if (gLinear.minOrders != null) {
-                ord = "<ul class='debugul orders'>";
-                gLinear.minOrders.forEach(function(el, i) {
-                    if (i == gLinear.minOrderIndex) {
-                        ord += '<li class="selected">[' + el.join(",") + ']</li>';
-                    } else
-                        ord += '<li>[' + el.join(",") + ']</li>';
-                });
 
-                ord += "</ul>";
+
+        function updateAll(caller) {
+            for (var i = 0; i < layouts.length; i++) {
+                if (!caller || layouts[i] !== caller) {
+                    layouts[i].update();
+                }
             }
-
-            if (d) {
-                var c = d.size;
-                if (d.children) {
-                    for (var i = 0; i < d.children.length; i++) {
-                        c += d.children[i].size;
-                    }
-                }
-                ord += "<span>" + c + "</span>";
-            }
-
-            $(".well.debug div").html(ord);
-            return;
-
-            if (!d)
-                return;
-
-            var s = "";
-            if (d) {
-                s += "<ul class='debugul'>";
-                s += "<li><span>Node.Size: </span>" + d.size + "</li>";
-                if (d.fi != null) {
-                    s += "<li><span>Node.Fi: </span>" + d.fi + "</li>";
-                }
-                if (d.ci != null) {
-                    s += "<li><span>Node.Ci: </span>[" + d.ci.join(",") + "]" + "</li>";
-                    if (d.parent) {
-                        var uRi = [];
-                        var uLi = [];
-                        for (var i = 0; i < d.ci.length; i++) {
-
-                            uRi.push(d.ci[i] + (d.parent.size * (d.ci.length - i - 1)));
-                            uLi.push(d.ci[i] + (d.parent.size * (i + 1)));
-                        }
-
-                        s += "<li><span>Node.uRi: </span>[" + uRi.join(",") + "]" + "</li>";
-                        s += "<li><span>Node.uLi: </span>[" + uLi.join(",") + "]" + "</li>";
-                    }
-                }
-
-                if (d.minCW != null) {
-                    s += "<li><span>Node.Minimum Cut: </span>[" + d.minCW.Value + "]" + "</li>";
-                }
-
-
-                s += "</ul>";
-            }
-
-            $(".well.debug div").html(s);
         }
-
-        var gTree = null;
-        var gLinear = null;
-        var newLinearLayout = null;
 
         $(document).ready(function() {
             //arcDiagram({ "nodes": [{ "name": "n0", "parent": null, "size": 4 }], "links": [] });
@@ -121,8 +64,7 @@
                 // d3.select("svg").attr("width", window.innerWidth).attr("height", height);
                 // plot.attr("transform", "translate(" + window.innerWidth * 0.8 + "," + pad + ")");
 
-                gTree.resizeTree();
-                gLinear.updateSize();
+                updateAll();
             });
         });
 
@@ -131,7 +73,7 @@
         }
 
         function randomGraph() {
-            var numOfNodes = 6;
+            var numOfNodes = 7;
             var maxSize = 4;
             var minSize = 1;
             var links = [];
@@ -199,30 +141,15 @@
             };
         }
 
-        // Draws an arc diagram for the provided undirected graph
         function arcDiagram(graph) {
-            // create svg image
             gGraph = graph;
 
             d3.select("svg").remove();
-
-            // var svg = d3.select("body")
-            //     .append("svg")
-            //     .attr("id", "arc")
-            //     .attr("width", window.innerWidth)
-            //     .attr("height", height);
-
             // svgDefs(svg);
-
             // create plot area within svg
-            plotLinear = d3.select("#lin-cont")
+            var plotLinear = d3.select("#lin-cont")
                 .append("svg")
                 .attr("id", "plot")
-                // .attr("width", window.innerWidth * 0.8)
-                // .attr("height", height)
-                // .append("g")
-                // .attr("id", "plotG");
-
 
             // fix graph links to map to objects instead of indices
             graph.links.forEach(function(d, i) {
@@ -230,19 +157,16 @@
                 d.target = isNaN(d.target) ? d.target : graph.nodes[d.target];
             });
 
-            plot = d3.select("#tree-cont")
+            var plot = d3.select("#tree-cont")
                 .append("svg")
                 .attr("id", "tree")
                 .append("g")
                 .attr("transform", "translate(0, 50)");
 
+            var tree = new myTree(graph, plot);
 
-            gTree = new myTree();
-            gTree.createTree(graph);
-            gTree.updateTree(gTree.root);
-
-            gLinear = new linearLayout(graph, plotLinear, gTree);
-            gLinear.initialize(graph);
+            linear = new linearLayout(graph, plotLinear, tree);
+            linear.initialize(graph);
 
             var lvl1Links = graph.links.filter(function(e) {
                 var d1 = Math.max(e.source.depth, e.target.depth);
@@ -257,9 +181,13 @@
             newLinearLayout = new linearLayout({
                 nodes: graph.nodes,
                 links: lvl1Links
-            }, plot2Linear, gTree);
+            }, plot2Linear);
 
             newLinearLayout.initialize(graph);
+
+            layouts.push(tree);
+            layouts.push(linear);
+            layouts.push(newLinearLayout);
 
             // var plotBipartite = svg.append("g").attr("id", "bipartite").attr("transform", "translate(" + window.innerWidth * 0.8 + "," + (pad + 250) + ")");
 
@@ -271,9 +199,9 @@
             //d3.select(window).on("keydown", null).on("keyup", null);
 
             d3.select(window).on("keydown", function() {
-                gTree.svgKeyDown.call(gTree);
+                tree.svgKeyDown.call(tree);
             }).on("keyup", function() {
-                gTree.svgKeyUp.call(gTree);
+                tree.svgKeyUp.call(tree);
             });
         }
 
@@ -298,6 +226,74 @@
                 .append("polyline")
                 .attr("points", "0,0 10,5 0,10 1,5")
                 .attr("fill", "#c00");
+        }
+
+        function updateDebug(d) {
+            if (layouts.length == 0) {
+                return;
+            }
+
+            var ord = "";
+            if (layouts[1].minOrders != null) {
+                ord = "<ul class='debugul orders'>";
+                gLinear.minOrders.forEach(function(el, i) {
+                    if (i == gLinear.minOrderIndex) {
+                        ord += '<li class="selected">[' + el.join(",") + ']</li>';
+                    } else
+                        ord += '<li>[' + el.join(",") + ']</li>';
+                });
+
+                ord += "</ul>";
+            }
+
+            if (d) {
+                var c = d.size;
+                if (d.children) {
+                    for (var i = 0; i < d.children.length; i++) {
+                        c += d.children[i].size;
+                    }
+                }
+                ord += "<span>" + c + "</span>";
+            }
+
+            $(".well.debug div").html(ord);
+            return;
+
+            if (!d)
+                return;
+
+            var s = "";
+            if (d) {
+                s += "<ul class='debugul'>";
+                s += "<li><span>Node.Size: </span>" + d.size + "</li>";
+                if (d.fi != null) {
+                    s += "<li><span>Node.Fi: </span>" + d.fi + "</li>";
+                }
+                if (d.ci != null) {
+                    s += "<li><span>Node.Ci: </span>[" + d.ci.join(",") + "]" + "</li>";
+                    if (d.parent) {
+                        var uRi = [];
+                        var uLi = [];
+                        for (var i = 0; i < d.ci.length; i++) {
+
+                            uRi.push(d.ci[i] + (d.parent.size * (d.ci.length - i - 1)));
+                            uLi.push(d.ci[i] + (d.parent.size * (i + 1)));
+                        }
+
+                        s += "<li><span>Node.uRi: </span>[" + uRi.join(",") + "]" + "</li>";
+                        s += "<li><span>Node.uLi: </span>[" + uLi.join(",") + "]" + "</li>";
+                    }
+                }
+
+                if (d.minCW != null) {
+                    s += "<li><span>Node.Minimum Cut: </span>[" + d.minCW.Value + "]" + "</li>";
+                }
+
+
+                s += "</ul>";
+            }
+
+            $(".well.debug div").html(s);
         }
     </script>
 </head>

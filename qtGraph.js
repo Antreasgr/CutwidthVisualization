@@ -10,10 +10,8 @@ function myTree(graph, gElement) {
     this.diagonal = d3.svg.diagonal().projection(function(d) { return [d.x, d.y]; });
 
     var self = this;
-    this.createTree = function(graph) {
-        // try to create a tree
-        this.graph = graph;
 
+    this.createTree = function() {
         if (graph.nodes.length > 0) {
             var dataMap = graph.nodes.reduce(function(map, node) {
                 map[node.name] = node;
@@ -46,17 +44,19 @@ function myTree(graph, gElement) {
 
             this.length = graph.nodes.length;
         }
+
+        this.update();
     }
 
     this.resizeTree = function() {
         this.tree = d3.layout.tree()
             .size([0.2 * window.innerWidth, height]);
 
-        this.updateTree(this.root);
+        this.update(this.root);
     }
 
-    this.updateTree = function(r) {
-        console.log("updateTree");
+    this.update = function(r) {
+        console.log("update");
         if (!r) {
             r = this.root;
         }
@@ -79,8 +79,7 @@ function myTree(graph, gElement) {
         });
 
         // Declare the nodes
-        // TODO: remove plot variable to gElement
-        var node = plot
+        var node = this.gElement
             .selectAll(".treenode")
             .data(n, function(d) { return d.name; });
 
@@ -106,12 +105,12 @@ function myTree(graph, gElement) {
             .on("mouseover", function(d, i) {
                 self.treeSelection = d;
                 $(".plusminus").removeClass("disabled");
-                updateDebug(d);
+                //updateDebug(d);
             })
             .on("mouseout", function(d, i) {
                 self.treeSelection = null;
                 $(".plusminus").addClass("disabled");
-                updateDebug(null);
+                //updateDebug(null);
             });
 
         nodeEnter.append("circle")
@@ -129,7 +128,7 @@ function myTree(graph, gElement) {
             .style("fill-opacity", 1);
 
         // Declare the links
-        var link = plot.selectAll("path.treelink")
+        var link = this.gElement.selectAll("path.treelink")
             .data(this.graph.links, function(d) { return d.source.name + "_" + d.target.name; });
 
         link.transition().duration(500).attr("d", this.diagonal);
@@ -142,7 +141,7 @@ function myTree(graph, gElement) {
         link.exit().remove();
 
         if (this.treeSelection) {
-            updateDebug(this.treeSelection);
+            //updateDebug(this.treeSelection);
         }
     }
 
@@ -183,7 +182,7 @@ function myTree(graph, gElement) {
                     if (d.parent.children[i] === d) {
                         removed.push(d.parent.children[i]);
                         d.parent.children.splice(i, 1);
-                        gTree.length--;
+                        this.length--;
                     }
                 }
 
@@ -193,7 +192,7 @@ function myTree(graph, gElement) {
 
                     var n = stack.pop();
                     while (n != null && n.children != null && n.children.length > 0) {
-                        gTree.length -= n.children.length;
+                        this.length -= n.children.length;
                         for (var i = 0; i < n.children.length; i++) {
                             removed.push(n.children[i]);
                             if (n.children[i].children) {
@@ -206,15 +205,16 @@ function myTree(graph, gElement) {
                     }
                 }
 
-                gTree.updateTree(gTree.root);
-                gLinear.removeNodes(removed);
+                updateAll();
+                //TODO: fix remove nodes
+                //gLinear.removeNode(child);
             }
 
         } else {
             //add a children
             if (!d.children) {
                 d.children = [];
-                d.group1 = gTree.length;
+                d.group1 = this.length;
             }
 
             //find next available name
@@ -227,10 +227,10 @@ function myTree(graph, gElement) {
                 }
             };
 
-            n = gTree.root;
-            if (Array.isArray(gTree.root)) {
-                n = gTree.root[0];
-                stack.push.apply(stack, gTree.root);
+            n = this.root;
+            if (Array.isArray(this.root)) {
+                n = this.root[0];
+                stack.push.apply(stack, this.root);
             }
 
             while (n != null && n != "null") {
@@ -253,15 +253,16 @@ function myTree(graph, gElement) {
                 size: 4,
                 x: 0,
                 y: 0,
-                order: gTree.length,
+                order: this.length,
                 group1: d.group1
             };
 
             d.children.push(child);
-            gTree.length++;
-            gTree.updateTree(gTree.root);
+            this.length++;
 
-            gLinear.addNode(child);
+            updateAll();
+            // TODO: fix add Child
+            //gLinear.addNode(child);
         }
 
         lock = false;
@@ -275,21 +276,17 @@ function myTree(graph, gElement) {
             if (d3.event.keyCode == 107 || d3.event.keyCode == 61) {
                 // + pressed
                 this.treeSelection.size++;
-                this.updateTree(this.root);
-                gLinear.updateSize();
+                updateAll();
             } else if ((d3.event.keyCode == 109 || d3.event.keyCode == 173) && this.treeSelection.size > 0) {
                 // - pressed
                 this.treeSelection.size--;
-                this.updateTree(this.root);
-                gLinear.updateSize();
+                updateAll();
             } else if (d3.event.keyCode == 79) {
                 // Enter pressed run polynomial ALGORITHM
                 lock = true;
                 this.BestOrder(this.treeSelection);
                 this.ArrangeAll();
-                gLinear.updateSize();
-                newLinearLayout.updateSize();
-                this.updateTree(this.root);
+                updateAll();
                 lock = false;
             }
         }
@@ -301,21 +298,30 @@ function myTree(graph, gElement) {
 
         if (d3.event.shiftKey && d3.event.keyCode == 188) {
             // ,
-            if (gLinear.minOrders != null) {
-                gLinear.moveToNextOrdering(true);
+            // TODO: fix move to next ordering
+            if (layouts[1].minOrders != null) {
+                layouts[1].moveToNextOrdering(true);
             }
         }
 
         if (d3.event.shiftKey && d3.event.keyCode == 190) {
             // .
-            if (gLinear.minOrders != null) {
-                gLinear.moveToNextOrdering(false);
+            // TODO: fix move to next ordering
+            if (layouts[1].minOrders != null) {
+                layouts[1].moveToNextOrdering(false);
             }
         }
 
         if (d3.event.shiftKey && d3.event.keyCode == 68) {
             // d key
             this.DynamicCutWidth();
+        }
+
+        if (d3.event.shiftKey && d3.event.keyCode == 69) {
+            // e key
+            // TODO: fix this
+            this.DynamicCutWidth(layouts[2].graph);
+            console.log(layouts);
         }
 
         if (d3.event.shiftKey && d3.event.keyCode == 66) {
@@ -657,7 +663,7 @@ function myTree(graph, gElement) {
         }
 
         gLinear.updateSize();
-        this.updateTree(this.root);
+        this.update(this.root);
     }
 
     //--------------------------------------
@@ -703,14 +709,21 @@ function myTree(graph, gElement) {
         dfs(n, false);
     }
 
-    this.DynamicCutWidth = function() {
-        var min = DynamicAlgorithm.DynamicCutWidth(this.graph, DynamicAlgorithm.fCutWidth);
-
-        if (this.graph) {
-            this.graph.minimumCutwidth = min.Value;
+    // TODO: move to the graph class
+    this.DynamicCutWidth = function(g) {
+        if (!g) {
+            g = this.graph;
         }
 
-        gLinear.updateSize();
+        var min = DynamicAlgorithm.DynamicCutWidth(g, DynamicAlgorithm.fCutWidth);
 
+        if (g) {
+            g.minimumCutwidth = min.Value;
+        }
+
+        updateAll();
     }
+
+    // Constructor:
+    this.createTree();
 }
