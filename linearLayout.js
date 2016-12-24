@@ -1,109 +1,35 @@
-function linearLayout(graph, svgElement) {
+function linearLayout(graph, element) {
     this.radius = 10;
     this.xscale = null;
     this.rscale = null;
-    this.radians = null;
     this.yfixed = 80;
 
     this.graph = graph;
     this.length = graph.nodes.length;
-    this.svgElement = svgElement;
-    this.gElement = svgElement.append("g");
 
-    //for min Orderings from import
-    this.minOrders = null;
-    this.minOrderIndex = 0;
+    this.svgElement = element.append("svg");
+    this.gElement = this.svgElement.append("g");
 
     this.cuts = [];
     var self = this;
 
-    this.addNode = function(child) {
-        // d must have correct stuff
-        this.length++;
+    this.selectionChanged = function(d) {
 
-        this.graph.nodes.push(child);
-        // we need to add the links too
-        var t = child;
-        while (t.parent != null && t.parent != "null") {
-            this.graph.links.push({ source: child, target: t.parent });
-            t = t.parent;
-        }
-
-        this.initialize(this.graph);
-    }
-
-    this.update = function() {
-        this.initialize(this.graph);
-    }
-
-    this.moveToNextOrdering = function(prev) {
-        var changed = false;
-        if (prev == true) {
-            if (this.minOrderIndex > 0) {
-                this.minOrderIndex--;
-                changed = true;
-            }
-        } else {
-            if (this.minOrderIndex < this.minOrders.length - 1) {
-                this.minOrderIndex++;
-                changed = true;
-            }
-        }
-
-        console.log(this.minOrderIndex);
-        if (changed) {
-            var _this = this;
-            this.graph.nodes.forEach(function(d, i) {
-                d.order = _this.minOrders[_this.minOrderIndex][i];
-            });
-
-            updateAll();
-        }
-    }
-
-    this.removeNodes = function(nodes) {
-        this.length -= nodes.length;
-
-        for (var n = 0; n < nodes.length; n++) {
-            //remove links
-            for (var i = this.graph.links.length - 1; i >= 0; i--) {
-                if (this.graph.links[i].source === nodes[n] || this.graph.links[i].target === nodes[n]) {
-                    this.graph.links.splice(i, 1);
-                }
-            }
-
-            // now remove node
-            for (var i = this.graph.nodes.length - 1; i >= 0; i--) {
-                if (this.graph.nodes[i] === nodes[n]) {
-                    var o = this.graph.nodes[i].order;
-                    this.graph.nodes.splice(i, 1);
-
-                    for (var j = 0; j < this.graph.nodes.length; j++) {
-                        if (this.graph.nodes[j].order > o)
-                            this.graph.nodes[j].order--;
-                    }
-                }
-            }
-        }
-
-        this.initialize(this.graph);
     }
 
     this.getXY = function(datum) {
         return { x: this.xscale(datum.order), y: self.yfixed + datum.y / 10 };
     }
 
-    this.initialize = function() {
+    this.update = function() {
         // check if we have many orderings
-        if (graph.order && graph.order.length > 0 && graph.order[0].length > 0) {
-            this.minOrders = graph.order.slice();
+        if (this.graph.order && this.graph.order.length > 0 && this.graph.order[0].length > 0) {
+            this.minOrders = this.graph.order.slice();
             this.minOrderIndex = 0;
-            this.graph.order = graph.order[0];
+            this.graph.order = thisgraph.order[0];
         }
 
         //this.radius = Math.max(4, Math.min(15, (width / (this.length)) - pad));
-
-        // must be done AFTER links are fixed
         this.rescale();
 
         // calculate pixel location for each node
@@ -227,15 +153,12 @@ function linearLayout(graph, svgElement) {
             size += nodesCopy[i].size;
         }
 
-
-
         var half = Math.floor(size / 2.0);
         for (var i = 0; i < nodesCopy.length; i++) {
             half -= nodesCopy[i].size;
             if (half <= 0) {
                 var halfline = this.gElement.selectAll(".halfline")
                     .data([half == 0 ? nodesCopy[i].order + 0.5 : nodesCopy[i].order]);
-
 
                 halfline.transition().duration(500)
                     .attr("x1", function(d, i) { return self.xscale(d); })
@@ -251,7 +174,6 @@ function linearLayout(graph, svgElement) {
                 break;
             }
         }
-
     }
 
     this.rescale = function() {
@@ -270,10 +192,6 @@ function linearLayout(graph, svgElement) {
         this.rscale = d3.scale.linear()
             .domain([0, d3.max(this.graph.nodes, function(d) { return d.size; })])
             .range([4, this.radius]);
-
-        // scale to generate radians (just for lower-half of circle)
-        this.radians = d3.scale.linear()
-            .range([3 * Math.PI / 4, 5 * Math.PI / 4]);
     }
 
     this.updateArrows = function() {
@@ -316,9 +234,6 @@ function linearLayout(graph, svgElement) {
 
     this.updateCuts = function() {
         this.cuts = [];
-
-
-
         var nodeArray = new Array(this.length);
 
         this.gElement.selectAll(".node").each(function(node, i) {
@@ -371,6 +286,7 @@ function linearLayout(graph, svgElement) {
                         }
                     }
                 }
+
                 self.cuts.push(independentCut + cut);
                 node.cut = independentCut + cut;
 
@@ -447,7 +363,9 @@ function linearLayout(graph, svgElement) {
         // console.log(txt);
     }
 
-    // Draws nodes on plot
+    /* 
+     * Draws nodes on plot
+     */
     this.drawNodes = function() {
         // used to assign nodes color by group
         color = d3.scale.category10();
@@ -466,7 +384,6 @@ function linearLayout(graph, svgElement) {
             .attr("r", function(d, i) { return self.rscale(d.size); })
             .style("fill", function(d, i) { return color(d.group1); })
             .style("stroke", function(d, i) { if (d.isu == 1) { return "#000"; } });
-
 
         node.enter()
             .append("circle")
@@ -520,12 +437,12 @@ function linearLayout(graph, svgElement) {
     this.handleMouseOver = function(d, i) {
         d3.select(this).select("circle").style("stroke", "red");
         // TODO: fix selection on every layout
-        // self.tree.treeSelection = d;
+        self.graph.updateSelection(d);
     }
 
     this.handleMouseOut = function(d, i) {
         d3.select(this).select("circle").style("stroke", "");
-        // self.tree.treeSelection = null;
+        self.graph.updateSelection(null);
     }
 
     this.moveTo = function(d, newIndex) {
@@ -580,7 +497,7 @@ function linearLayout(graph, svgElement) {
         //     .attr("x", function (d) { return self.getXY(d).x; });
 
         this.updateArrows();
-        updateAll();
+        updateAll(this);
     }
 
     this.dragmove = function(d) {
@@ -613,7 +530,9 @@ function linearLayout(graph, svgElement) {
         d3.select(d3node).attr("r", d.r).attr("cy", self.getXY(d).y);
     }
 
-    // Draws nice arcs for each link on plot
+    /* 
+     *  Draws nice arcs for each link on graph
+     */
     this.drawLinks = function() {
         var color = color = d3.scale.category10();
         // add links
@@ -631,6 +550,9 @@ function linearLayout(graph, svgElement) {
         linksSel.exit().remove();
     }
 
+    /* 
+     *  Draw curved link
+     */
     function drawlink(d, i) {
         var dx = self.getXY(d.target).x - self.getXY(d.source).x,
             dy = self.getXY(d.target).y - self.getXY(d.source).y,

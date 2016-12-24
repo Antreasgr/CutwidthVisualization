@@ -16,10 +16,10 @@
     <link href="http://fonts.googleapis.com/css?family=Open%20Sans:300,900" rel="stylesheet" type="text/css">-->
     <link href="style.css" rel="stylesheet" type="text/css">
 
-
+    <script src="genericGraph.js"></script>
+    <script src="treeLayout.js"></script>
     <script src="dynamic-algorithm.js"></script>
     <script src="bipartite.js"></script>
-    <script src="qtGraph.js"></script>
     <script src="linearLayout.js"></script>
     <script>
         /* GLOBALS */
@@ -37,16 +37,6 @@
         var lock = false;
         var gGraph = null;
         var layouts = [];
-
-
-
-        function updateAll(caller) {
-            for (var i = 0; i < layouts.length; i++) {
-                if (!caller || layouts[i] !== caller) {
-                    layouts[i].update();
-                }
-            }
-        }
 
         $(document).ready(function() {
             //arcDiagram({ "nodes": [{ "name": "n0", "parent": null, "size": 4 }], "links": [] });
@@ -67,6 +57,14 @@
                 updateAll();
             });
         });
+
+        function updateAll(caller) {
+            for (var i = 0; i < layouts.length; i++) {
+                if (!caller || layouts[i] !== caller) {
+                    layouts[i].update();
+                }
+            }
+        }
 
         function getRandomIntInclusive(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -142,14 +140,10 @@
         }
 
         function arcDiagram(graph) {
-            gGraph = graph;
+            gGraph = new genericGraph(graph.nodes, graph.links);
 
             d3.select("svg").remove();
             // svgDefs(svg);
-            // create plot area within svg
-            var plotLinear = d3.select("#lin-cont")
-                .append("svg")
-                .attr("id", "plot")
 
             // fix graph links to map to objects instead of indices
             graph.links.forEach(function(d, i) {
@@ -157,16 +151,10 @@
                 d.target = isNaN(d.target) ? d.target : graph.nodes[d.target];
             });
 
-            var plot = d3.select("#tree-cont")
-                .append("svg")
-                .attr("id", "tree")
-                .append("g")
-                .attr("transform", "translate(0, 50)");
+            var tree = new treeLayout(gGraph, d3.select("#tree-cont"));
 
-            var tree = new myTree(graph, plot);
-
-            linear = new linearLayout(graph, plotLinear, tree);
-            linear.initialize(graph);
+            linear = new linearLayout(gGraph, d3.select("#lin-cont"));
+            linear.update();
 
             var lvl1Links = graph.links.filter(function(e) {
                 var d1 = Math.max(e.source.depth, e.target.depth);
@@ -174,16 +162,11 @@
                 return d2 == 0;
             });
 
-            var plot2Linear = d3.select("#lin2-cont")
-                .append("svg")
-                .attr("id", "plot");
-
-            newLinearLayout = new linearLayout({
-                nodes: graph.nodes,
-                links: lvl1Links
-            }, plot2Linear);
-
-            newLinearLayout.initialize(graph);
+            newLinearLayout = new linearLayout(new genericGraph(graph.nodes, lvl1Links), d3.select("#lin2-cont"));
+            newLinearLayout.update();
+            gGraph.addLayout(tree);
+            gGraph.addLayout(linear);
+            gGraph.addLayout(newLinearLayout);
 
             layouts.push(tree);
             layouts.push(linear);
@@ -195,14 +178,15 @@
             // bpGraph.createBipartiteGraph();
             // bpGraph.drawGraph();
 
-            // get keyboard events
-            //d3.select(window).on("keydown", null).on("keyup", null);
-
+            /*
+             * Catch keyboard events
+             */
             d3.select(window).on("keydown", function() {
-                tree.svgKeyDown.call(tree);
+                gGraph.svgKeyDown.call(gGraph);
             }).on("keyup", function() {
-                tree.svgKeyUp.call(tree);
+                gGraph.svgKeyUp.call(gGraph);
             });
+
         }
 
         function svgDefs(svg) {
