@@ -43,6 +43,7 @@ function genericGraph(nodes, links) {
         if (lock)
             return;
         lock = true;
+        this.minimumCutwidth = null;
         if (d3.event.altKey) {
             //remove this node and children
             if (d.parent && d.parent != "null") {
@@ -52,7 +53,6 @@ function genericGraph(nodes, links) {
                     if (d.parent.children[i] === d) {
                         removed.push(d.parent.children[i]);
                         d.parent.children.splice(i, 1);
-                        this.length--;
                     }
                 }
 
@@ -62,7 +62,6 @@ function genericGraph(nodes, links) {
 
                     var n = stack.pop();
                     while (n != null && n.children != null && n.children.length > 0) {
-                        this.length -= n.children.length;
                         for (var i = 0; i < n.children.length; i++) {
                             removed.push(n.children[i]);
                             if (n.children[i].children) {
@@ -84,7 +83,7 @@ function genericGraph(nodes, links) {
             //add a children
             if (!d.children) {
                 d.children = [];
-                d.group1 = this.length;
+                d.group1 = this.nodes.length;
             }
 
             //find next available name
@@ -94,20 +93,15 @@ function genericGraph(nodes, links) {
             var child = {
                 name: newName,
                 parent: d,
-                group: d.group,
-                size: 4,
+                size: 1,
                 x: 0,
                 y: 0,
-                order: this.length,
+                order: this.nodes.length,
                 group1: d.group1
             };
 
             d.children.push(child);
-            this.length++;
-
-            // TODO: fix add Child
             this.addNode(child);
-            updateAll();
         }
 
         lock = false;
@@ -121,18 +115,22 @@ function genericGraph(nodes, links) {
             if (d3.event.keyCode == 107 || d3.event.keyCode == 61) {
                 // + pressed
                 this.selection.size++;
+                this.minimumCutwidth = null;
                 updateAll();
             } else if ((d3.event.keyCode == 109 || d3.event.keyCode == 173) && this.selection.size > 0) {
                 // - pressed
                 this.selection.size--;
+                this.minimumCutwidth = null;
                 updateAll();
             } else if (d3.event.keyCode == 79) {
-                // o pressed run polynomial ALGORITHM
-                // lock = true;
-                // this.BestOrder(this.selection);
-                // this.ArrangeAll();
-                // updateAll();
-                // lock = false;
+                /*
+                    o pressed run polynomial ALGORITHM
+                    lock = true;
+                    this.BestOrder(this.selection);
+                    this.ArrangeAll();
+                    updateAll();
+                    lock = false;
+                */
             }
         }
 
@@ -186,9 +184,6 @@ function genericGraph(nodes, links) {
     }
 
     this.addNode = function(child) {
-        // d must have correct stuff
-        this.length++;
-
         this.nodes.push(child);
         // we need to add the links too
         var t = child;
@@ -226,8 +221,6 @@ function genericGraph(nodes, links) {
     }
 
     this.removeNodes = function(nodes) {
-        this.length -= nodes.length;
-
         for (var n = 0; n < nodes.length; n++) {
             //remove links
             for (var i = this.links.length - 1; i >= 0; i--) {

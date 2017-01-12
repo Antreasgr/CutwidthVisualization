@@ -24,7 +24,7 @@ body {
 }
 
 .col-2 {
-    width: 20%;
+    width: 40%;
 }
 
 svg {
@@ -371,6 +371,7 @@ b {
 .node:hover {
     stroke: red !important;
     stroke-opacity: 1.0;
+    cursor: pointer;
 }
 
 .link,

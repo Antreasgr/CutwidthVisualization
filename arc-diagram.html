@@ -43,25 +43,17 @@
             arcDiagram(randomGraph());
 
             window.addEventListener('resize', function(event) {
-                margin = 80; // amount of margin around plot area
-                width = window.innerWidth; // width of svg image
-                height = window.innerHeight - margin; // height of svg image
-
-                pad = margin / 3; // actual padding amount
-                radius = 10; // fixed node radius
-                yfixed = pad + radius + 80; // y position for all nodes
-
-                // d3.select("svg").attr("width", window.innerWidth).attr("height", height);
-                // plot.attr("transform", "translate(" + window.innerWidth * 0.8 + "," + pad + ")");
-
-                updateAll();
+                updateAll(null, true);
             });
         });
 
-        function updateAll(caller) {
+        function updateAll(caller, resize) {
             for (var i = 0; i < layouts.length; i++) {
                 if (!caller || layouts[i] !== caller) {
                     layouts[i].update();
+                    if (resize) {
+                        layouts[i].resize();
+                    }
                 }
             }
         }
@@ -162,15 +154,15 @@
                 return d2 == 0;
             });
 
-            newLinearLayout = new linearLayout(new genericGraph(graph.nodes, lvl1Links), d3.select("#lin2-cont"));
-            newLinearLayout.update();
+            //newLinearLayout = new linearLayout(new genericGraph(graph.nodes, lvl1Links), d3.select("#lin2-cont"));
+            //newLinearLayout.update();
             gGraph.addLayout(tree);
             gGraph.addLayout(linear);
-            gGraph.addLayout(newLinearLayout);
+            // gGraph.addLayout(newLinearLayout);
 
             layouts.push(tree);
             layouts.push(linear);
-            layouts.push(newLinearLayout);
+            // layouts.push(newLinearLayout);
 
             // var plotBipartite = svg.append("g").attr("id", "bipartite").attr("transform", "translate(" + window.innerWidth * 0.8 + "," + (pad + 250) + ")");
 
@@ -326,7 +318,7 @@
             <div></div>
         </div>
     </div>
-    <div id="lin-cont" class="col col-1"></div>
+    <div id="lin-cont" class="col col-2"></div>
     <div id="lin2-cont" class="col col-1"></div>
     <div id="tree-cont" class="col col-2"></div>
 

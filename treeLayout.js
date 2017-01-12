@@ -51,7 +51,7 @@ function treeLayout(graph, element) {
         this.update();
     }
 
-    this.resizeTree = function() {
+    this.resize = function() {
         var w = this.svgElement.node().getBoundingClientRect().width;
         var h = this.svgElement.node().getBoundingClientRect().height;
         this.tree = d3.layout.tree().size([w, h]);
