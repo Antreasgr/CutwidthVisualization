@@ -164,10 +164,10 @@ function genericGraph(nodes, links) {
             this.DynamicCutWidth(this.layouts[2].graph);
         }
 
-        if (d3.event.shiftKey && d3.event.keyCode == 66) {
-            // b key
-            bpGraph.DynamicAlgorithm();
-        }
+        // if (d3.event.shiftKey && d3.event.keyCode == 66) {
+        //     // b key
+        //     bpGraph.DynamicAlgorithm();
+        // }
 
         if (d3.event.shiftKey && d3.event.keyCode == 84) {
             // t
@@ -623,8 +623,9 @@ function genericGraph(nodes, links) {
      */
     this.DynamicCutWidth = function(g) {
         var min = DynamicAlgorithm.DynamicCutWidth(g, DynamicAlgorithm.fCutWidth);
-        g.minimumCutwidth = min.Value;
 
+
+        g.minimumCutwidth = min.Value;
         updateAll();
     }
 

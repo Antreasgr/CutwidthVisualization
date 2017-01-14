@@ -144,9 +144,8 @@
             });
 
             var tree = new treeLayout(gGraph, d3.select("#tree-cont"));
-
-            linear = new linearLayout(gGraph, d3.select("#lin-cont"));
-            linear.update();
+            var linear = new linearLayout(gGraph, d3.select("#lin-cont"), "layout1");
+            var linear2 = new linearLayout(gGraph, d3.select("#lin3-cont"), "layout3", false);
 
             var lvl1Links = graph.links.filter(function(e) {
                 var d1 = Math.max(e.source.depth, e.target.depth);
@@ -154,15 +153,16 @@
                 return d2 == 0;
             });
 
-            //newLinearLayout = new linearLayout(new genericGraph(graph.nodes, lvl1Links), d3.select("#lin2-cont"));
-            //newLinearLayout.update();
+            newLinearLayout = new linearLayout(new genericGraph(graph.nodes, lvl1Links), d3.select("#lin2-cont"), "layout2");
             gGraph.addLayout(tree);
             gGraph.addLayout(linear);
-            // gGraph.addLayout(newLinearLayout);
+            gGraph.addLayout(newLinearLayout);
+            gGraph.addLayout(linear2);
 
             layouts.push(tree);
             layouts.push(linear);
-            // layouts.push(newLinearLayout);
+            layouts.push(newLinearLayout);
+            layouts.push(linear2);
 
             // var plotBipartite = svg.append("g").attr("id", "bipartite").attr("transform", "translate(" + window.innerWidth * 0.8 + "," + (pad + 250) + ")");
 
@@ -178,7 +178,6 @@
             }).on("keyup", function() {
                 gGraph.svgKeyUp.call(gGraph);
             });
-
         }
 
         function svgDefs(svg) {
@@ -314,14 +313,13 @@
         </div>
 
         <div class="well debug">
-            <h2>Debug Info</h2>
             <div></div>
         </div>
     </div>
     <div id="lin-cont" class="col col-2"></div>
-    <div id="lin2-cont" class="col col-1"></div>
-    <div id="tree-cont" class="col col-2"></div>
-
+    <div id="lin2-cont" class="col col-2"></div>
+    <div id="tree-cont" class="col col-1"></div>
+    <div id="lin3-cont" class="col col-2"></div>
     <script>
         $("#load").click(function() {
             d3.json($("#filename").val(), arcDiagram);

@@ -1,19 +1,19 @@
-
 //Adding new Functionality to the skillet
-(function (DynamicAlgorithm) {
+(function(DynamicAlgorithm) {
 
     /**
-    * Functions for dynamic programming algorithm according to
-    * [A Note on exact Algorithms for Vertex Ordering 2011]
-    * http://users.uoa.gr/~sedthilk/papers/notexact.pdf
-    * The function returning the cutwidth of a specific order
-    **/
-    DynamicAlgorithm.fCutWidth = function (S, v, links) {
+     * Functions for dynamic programming algorithm according to
+     * [A Note on exact Algorithms for Vertex Ordering 2011]
+     * http://users.uoa.gr/~sedthilk/papers/notexact.pdf
+     * The function returning the cutwidth of a specific order
+     **/
+    DynamicAlgorithm.fCutWidth = function(S, v, links) {
         var newS = new Set(S);
         var iS = new Set(S);
         newS.add(v);
         var cut = 0;
-        var left = 0, right = 0;
+        var left = 0,
+            right = 0;
         for (var i = 0; i < links.length; i++) {
             if ((iS.has(links[i].source) && !newS.has(links[i].target)) ||
                 (!newS.has(links[i].source) && iS.has(links[i].target))) {
@@ -24,16 +24,13 @@
             if (links[i].source == v) {
                 if (iS.has(links[i].target)) {
                     left += links[i].target.size;
-                }
-                else {
+                } else {
                     right += links[i].target.size;
                 }
-            }
-            else if (links[i].target == v) {
+            } else if (links[i].target == v) {
                 if (iS.has(links[i].source)) {
                     left += links[i].source.size;
-                }
-                else {
+                } else {
                     right += links[i].source.size;
                 }
             }
@@ -47,11 +44,16 @@
         return cut + insideCut;
     }
 
-    DynamicAlgorithm.DynamicCutWidth = function (graph, cutwidth_fn) {
+    DynamicAlgorithm.DynamicCutWidth = function(graph, cutwidth_fn) {
+        $(".well.debug").slideToggle();
+        $(".well.debug div").html("Running Dynamic Algorithm please wait.....<ul></ul>");
         var A = {};
         var nodes = graph.nodes;
         for (var i = 1; i <= nodes.length; i++) {
             var comb = k_combinations(nodes, i);
+            var s = `<li>Step: ${i} Size of A: ${Object.keys(A).length}, Number of combinations: ${comb.length}</li>`;
+            $(".well.debug div ul").append(s);
+
             for (var j = 0; j < comb.length; j++) {
                 var minW = { Value: Number.MAX_VALUE, Order: [] };
                 for (var w = 0; w < comb[j].length; w++) {
@@ -70,17 +72,17 @@
                         if (A[hashp]) {
                             minW.Order = A[hashp].Order.slice();
                             minW.Order.push(comb[j][w]);
-                        }
-                        else {
+                        } else {
                             minW.Order = [comb[j][w]];
                         }
                     }
-                    //minW = Math.min(minW.Value, f);
                 }
 
                 A[hashArray(comb[j])] = minW;
             }
         }
+
+        $(".well.debug div").append("Done, minimum cutwidth: " + A[hashArray(nodes)].Value);
 
         for (var i = 0; i < A[hashArray(nodes)].Order.length; i++) {
             A[hashArray(nodes)].Order[i].order = i;
@@ -90,13 +92,13 @@
     }
 
     //Helper function to hash a set of vertices
-    var hashArray = function (a) {
+    var hashArray = function(a) {
         if (!(a instanceof Array))
             return '';
 
         var copy = a.slice();
 
-        copy.sort(function (a, b) {
+        copy.sort(function(a, b) {
             if (a.name < b.name) return -1;
             if (a.name > b.name) return 1;
             return 0;
@@ -111,44 +113,44 @@
     }
 
     /**
-      * K-combinations
-      *
-      * Get k-sized combinations of elements in a set.
-      *
-      * Usage:
-      *   k_combinations(set, k)
-      *
-      * Parameters:
-      *   set: Array of objects of any type. They are treated as unique.
-      *   k: size of combinations to search for.
-      *
-      * Return:
-      *   Array of found combinations, size of a combination is k.
-      *
-      * Examples:
-      *
-      *   k_combinations([1, 2, 3], 1)
-      *   -> [[1], [2], [3]]
-      *
-      *   k_combinations([1, 2, 3], 2)
-      *   -> [[1,2], [1,3], [2, 3]
-      *
-      *   k_combinations([1, 2, 3], 3)
-      *   -> [[1, 2, 3]]
-      *
-      *   k_combinations([1, 2, 3], 4)
-      *   -> []
-      *
-      *   k_combinations([1, 2, 3], 0)
-      *   -> []
-      *
-      *   k_combinations([1, 2, 3], -1)
-      *   -> []
-      *
-      *   k_combinations([], 0)
-      *   -> []
-      */
-    var k_combinations = function (set, k) {
+     * K-combinations
+     *
+     * Get k-sized combinations of elements in a set.
+     *
+     * Usage:
+     *   k_combinations(set, k)
+     *
+     * Parameters:
+     *   set: Array of objects of any type. They are treated as unique.
+     *   k: size of combinations to search for.
+     *
+     * Return:
+     *   Array of found combinations, size of a combination is k.
+     *
+     * Examples:
+     *
+     *   k_combinations([1, 2, 3], 1)
+     *   -> [[1], [2], [3]]
+     *
+     *   k_combinations([1, 2, 3], 2)
+     *   -> [[1,2], [1,3], [2, 3]
+     *
+     *   k_combinations([1, 2, 3], 3)
+     *   -> [[1, 2, 3]]
+     *
+     *   k_combinations([1, 2, 3], 4)
+     *   -> []
+     *
+     *   k_combinations([1, 2, 3], 0)
+     *   -> []
+     *
+     *   k_combinations([1, 2, 3], -1)
+     *   -> []
+     *
+     *   k_combinations([], 0)
+     *   -> []
+     */
+    var k_combinations = function(set, k) {
         var i, j, combs, head, tailcombs;
 
         if (k > set.length || k <= 0) {
@@ -178,4 +180,4 @@
         return combs;
     }
 
-} (window.DynamicAlgorithm = window.DynamicAlgorithm || {}));
+}(window.DynamicAlgorithm = window.DynamicAlgorithm || {}));

@@ -1,4 +1,4 @@
-function linearLayout(graph, element) {
+function linearLayout(graph, element, name, linked) {
     this.radius = 10;
     this.xscale = null;
     this.rscale = null;
@@ -9,24 +9,51 @@ function linearLayout(graph, element) {
     this.svgElement = element.append("svg");
     this.gElement = this.svgElement.append("g");
     this.nodesgElement = this.svgElement.append("g").attr("class", "nodes-group");
+    this.linked = linked === false ? false : true;
 
     this.cuts = [];
     var self = this;
 
-    this.layoutName = this.graph.uuid();
+    this.layoutName = name ? name : this.graph.uuid();
 
     this.selectionChanged = function(d) {
 
     }
 
-    this.getXY = function(datum) {
-        return { x: this.xscale(datum.order), y: self.yfixed + datum.y / 10 };
+    /*
+     * Gets the x, y position of a node on the linear layout
+     */
+    this.getXY = function(d, i) {
+        var xy = { x: this.xscale(self.getOrder(d, i)), y: self.yfixed + d.y / 10 };
+        return xy;
     }
 
-    this.resize = function() {
-        this.rescale();
+    /*
+     * Helper function to get the order in the layout of a datum(node)
+     * @param d: datum
+     * @param i: index
+     */
+    this.getOrder = function(d, i) {
+        // if linked use the global order (d.order) else return the specific order of this layout (d[layoutName])
+        i = i === "undefined" ? 0 : i;
+        var o = self.linked ? d : (d[self.layoutName] = d[self.layoutName] || {});
+        o.order = o.order != null ? o.order : i;
+        return o.order;
     }
 
+    /*
+     * Helper function to set the order in the layout of a datum(node)
+     * @param d: datum
+     * @param value: the value to set
+     */
+    this.setOrder = function(d, value) {
+        var o = this.linked ? d : (d[self.layoutName] = d[self.layoutName] || {});
+        o.order = value;
+    }
+
+    /*
+     * Main Method: Updates/Creates the everything that makes the linear layout
+     */
     this.update = function() {
         // check if we have many orderings
         if (this.graph.order && this.graph.order.length > 0 && this.graph.order[0].length > 0) {
@@ -35,21 +62,12 @@ function linearLayout(graph, element) {
             this.graph.order = thisgraph.order[0];
         }
 
-        //this.radius = Math.max(4, Math.min(15, (width / (this.length)) - pad));
         this.rescale();
 
         // calculate pixel location for each node
         this.graph.nodes.forEach(function(d, i) {
-            if (d.order != null) {
-                d.r = self.rscale(d.size);
-            } else {
-                if (self.graph.order && self.graph.order.length >= self.graph.nodes.length) {
-                    d.order = self.graph.order[i];
-                } else {
-                    d.order = i;
-                }
-                d.r = self.rscale(d.size);
-            }
+            d[self.layoutName] = d[self.layoutName] || {};
+            d[self.layoutName].position = self.getXY(d, i);
         });
 
         // draw links first, so nodes appear on top
@@ -58,6 +76,7 @@ function linearLayout(graph, element) {
         // draw nodes last
         this.drawNodes();
 
+        // create the Cut text in the middle
         this.gElement.selectAll(".maxcut").data([0]).enter().append("text").attr("class", "maxcut").text(function(d) { return d; });
         this.updateCuts();
 
@@ -68,99 +87,21 @@ function linearLayout(graph, element) {
         this.updateHalfLine();
 
         // create arrow lines
-        this.updateArrows();
-
-        // updateDebug(null);
-    }
-
-    this.drawCutlines = function() {
-        // var cutLines = []
-        // for (var i = 0; i < this.graph.nodes.length; i++) {
-        //     cutLines.push(i + 0.5);
-        // }
-
-        // var cutlines = this.gElement.selectAll(".cuts").data(cutLines);
-
-        // cutlines.transition().duration(500).attr("x1", function(d, i) { return self.xscale(i + 0.5); })
-        //     .attr("x2", function(d, i) { return self.xscale(i + 0.5); })
-        //     .attr("y1", self.yfixed - 50)
-        //     .attr("y2", height);
-
-        // cutlines.enter()
-        //     .append("line")
-        //     .attr("class", "cuts")
-        //     .attr("x1", function(d, i) { return self.xscale(i + 0.5); })
-        //     .attr("x2", function(d, i) { return self.xscale(i + 0.5); })
-        //     .attr("y1", self.yfixed - 50)
-        //     .attr("y2", height);
-
-        // cutlines.exit().remove();
-
-        var cutScaler = d3.scale.linear()
-            .domain([d3.min(this.cuts), d3.max(this.cuts)])
-            .range([0, 1]);
-
-        colorText = d3.interpolateHsl(d3.rgb("#dadaeb"), d3.rgb("#756bb1"));
-
-        var cutTexts = this.gElement.selectAll(".cutwidths")
-            .data(this.graph.nodes, function(d) { return d.name; });
-
-        cutTexts.transition().duration(500)
-            .text(function(d, i) { return d.cut; })
-            .attr("x", function(d, i) { return self.xscale(d.order + 0.5); })
-            .attr("y", self.yfixed + 120)
-            .attr("text-anchor", "end")
-            .attr("fill", function(d, i) { return colorText(cutScaler(d.cut)); });
-
-        cutTexts.enter()
-            .append("text")
-            .attr("class", "cutwidths")
-            .text(function(d, i) { return d.cut; })
-            .attr("x", function(d, i) { return self.xscale(d.order + 0.5); })
-            .attr("y", self.yfixed + 120)
-            .attr("text-anchor", "end")
-            .attr("fill", function(d, i) { return colorText(cutScaler(d.cut)); });
-
-        cutTexts.exit().remove();
-    }
-
-    this.drawTooltipsB = function() {
-        // draw bitonic value
-        // var tooltipsb = this.gElement.selectAll(".tooltipb").data(this.graph.nodes, function (d) { return d.name; });
-
-        // tooltipsb.transition().duration(500).text(function (d) { return d.bitonic; })
-        //     .attr("x", function (d) { return self.getXY(d).x; })
-        //     .attr("y", function (d) { return self.getXY(d).y; })
-        //     .attr("dy", this.radius * 1.5)
-
-        // tooltipsb.enter().append("text")
-        //     .text(function (d) { return d.bitonic; })
-        //     .attr("x", function (d) { return self.getXY(d).x; })
-        //     .attr("y", function (d) { return self.getXY(d).y; })
-        //     .attr("dy", this.radius * 1.5)
-        //     .attr("circle", function (d) { return d.name; })
-        //     .attr("text-anchor", "middle")
-        //     .attr("class", "tooltipb");
-
-        // tooltipsb.exit().remove();
-
+        this.drawArrows();
     }
 
     this.updateHalfLine = function() {
         var nodesCopy = this.graph.nodes.slice();
-        nodesCopy.sort(function(a, b) { return a.order - b.order });
+        nodesCopy.sort(function(a, b) { return self.getOrder(a) - self.getOrder(b) });
 
-        var size = 0;
-        for (var i = 0; i < nodesCopy.length; i++) {
-            size += nodesCopy[i].size;
-        }
+        var size = nodesCopy.reduce((a, c) => a + c.size, 0);
 
         var half = Math.floor(size / 2.0);
         for (var i = 0; i < nodesCopy.length; i++) {
             half -= nodesCopy[i].size;
             if (half <= 0) {
                 var halfline = this.gElement.selectAll(".halfline")
-                    .data([half == 0 ? nodesCopy[i].order + 0.5 : nodesCopy[i].order]);
+                    .data([half == 0 ? self.getOrder(nodesCopy[i], i) + 0.5 : self.getOrder(nodesCopy[i], i)]);
 
                 halfline.transition().duration(500)
                     .attr("x1", function(d, i) { return self.xscale(d); })
@@ -196,43 +137,6 @@ function linearLayout(graph, element) {
             .range([4, this.radius]);
     }
 
-    this.updateArrows = function() {
-        //
-        //var arrowsRight = this.gElement.selectAll(".arrowR").data(this.graph.nodes);
-        //arrowsRight.transition().duration(500)
-        //        .attr("x1", function (d) { return self.getXY(d).x; })
-        //        .attr("y1", function (d) { return self.getXY(d).y + self.radius * 2; })
-        //        .attr("x2", function (d) { return self.getXY(d).x + self.radius; })
-        //        .attr("y2", function (d) { return self.getXY(d).y + self.radius * 2; })
-        //        .attr("marker-end", function (d) { return (d.moveRight ? "url(#arrow)" : null); });
-
-        //arrowsRight.enter()
-        //        .append("svg:line")
-        //        .attr("x1", function (d) { return self.getXY(d).x; })
-        //        .attr("y1", function (d) { return self.getXY(d).y + self.radius * 2; })
-        //        .attr("x2", function (d) { return self.getXY(d).x + self.radius; })
-        //        .attr("y2", function (d) { return self.getXY(d).y + self.radius * 2; })
-        //        .attr("class", "arrowR")
-        //        .attr("marker-end", function (d) { return (d.moveRight ? "url(#arrow)" : null); });
-        //arrowsRight.exit().remove();
-
-        //var arrowsLeft = this.gElement.selectAll(".arrowL").data(this.graph.nodes);
-        //arrowsLeft.transition().duration(500)
-        //        .attr("x1", function (d) { return self.getXY(d).x; })
-        //        .attr("y1", function (d) { return self.getXY(d).y + self.radius * 2; })
-        //        .attr("x2", function (d) { return self.getXY(d).x - self.radius; })
-        //        .attr("y2", function (d) { return self.getXY(d).y + self.radius * 2; })
-        //        .attr("marker-end", function (d) { return (d.moveLeft ? "url(#arrow)" : null); });
-
-        //arrowsLeft.data(this.graph.nodes).enter().append("svg:line")
-        //        .attr("x1", function (d) { return self.getXY(d).x; })
-        //        .attr("y1", function (d) { return self.getXY(d).y + self.radius * 2; })
-        //        .attr("x2", function (d) { return self.getXY(d).x - self.radius; })
-        //        .attr("y2", function (d) { return self.getXY(d).y + self.radius * 2; })
-        //        .attr("class", "arrowL")
-        //        .attr("marker-end", function (d) { return (d.moveLeft ? "url(#arrow)" : null); });
-        //arrowsLeft.exit().remove();
-    }
 
     this.updateCuts = function() {
         this.cuts = [];
@@ -242,20 +146,21 @@ function linearLayout(graph, element) {
             var independentCut = 0;
             var left = 0;
             var right = 0;
-            var j = node.order;
-            nodeArray[node.order] = node;
+            var j = self.getOrder(node);
+            nodeArray[j] = node;
 
             self.gElement.selectAll(".link")
                 .each(function(d, i) {
-                    if ((d.source.order > j && d.target.order < j) || (d.source.order < j && d.target.order > j)) {
+                    if ((self.getOrder(d.source) > j && self.getOrder(d.target) < j) ||
+                        (self.getOrder(d.source) < j && self.getOrder(d.target) > j)) {
                         independentCut += d.source.size * d.target.size;
-                    } else if (d.source.order == j) {
-                        if (d.target.order < j) {
+                    } else if (self.getOrder(d.source) == j) {
+                        if (self.getOrder(d.target) < j) {
                             left += d.target.size;
                         } else
                             right += d.target.size;
-                    } else if (d.target.order == j) {
-                        if (d.source.order < j) {
+                    } else if (self.getOrder(d.target) == j) {
+                        if (self.getOrder(d.source) < j) {
                             left += d.source.size;
                         } else
                             right += d.source.size;
@@ -266,18 +171,21 @@ function linearLayout(graph, element) {
                 var cut = 0;
                 var fi = Number.MIN_VALUE;
                 var fmaxes = [];
+                var o = self.getOrder(node);
+                var universalO = self.getOrder(self.graph.nodes[0]);
 
                 for (var pp = 0; pp <= node.size; pp++) {
                     // Calculate cut
                     cut = Math.max(cut, pp * (node.size - pp) + pp * right + (node.size - pp) * left);
 
                     // Calculate fi or gi
-                    if (node.order != self.graph.nodes[0].order) {
+
+                    if (o != universalO) {
                         var value = 0;
-                        if (node.order < self.graph.nodes[0].order) {
+                        if (o < universalO) {
                             // if is left of U
                             value = pp * (node.size - pp) + pp * (right - self.graph.nodes[0].size) + (node.size - pp) * left + self.graph.nodes[0].size * pp;
-                        } else if (node.order > self.graph.nodes[0].order) {
+                        } else if (o > universalO) {
                             //is right of U
                             value = pp * (node.size - pp) + pp * right + (node.size - pp) * (left - self.graph.nodes[0].size) + self.graph.nodes[0].size * (node.size - pp);
                         }
@@ -300,7 +208,7 @@ function linearLayout(graph, element) {
                 // Calculate the arrows
                 node.moveLeft = false;
                 node.moveRight = false;
-                if (node.order < self.graph.nodes[0].order) {
+                if (o < universalO) {
                     if (fmaxes.length == 1) {
                         if (fmaxes[0] > node.size - fmaxes[0]) {
                             // Li > Ri
@@ -309,7 +217,7 @@ function linearLayout(graph, element) {
                             node.moveLeft = true;
                         }
                     }
-                } else if (node.order > self.graph.nodes[0].order) {
+                } else if (o > universalO) {
                     if (fmaxes.length == 1) {
                         if (fmaxes[0] > node.size - fmaxes[0]) {
                             // Li > Ri
@@ -384,8 +292,9 @@ function linearLayout(graph, element) {
         var node = this.nodesgElement.selectAll(".node")
             .data(this.graph.nodes, function(d) { return d.name; });
 
-        node.transition().duration(500).attr("cx", function(d, i) { return self.getXY(d).x; })
-            .attr("cy", function(d, i) { return self.getXY(d).y; })
+        node.transition().duration(500)
+            .attr("cx", function(d, i) { return d[self.layoutName].position.x; })
+            .attr("cy", function(d, i) { return d[self.layoutName].position.y; })
             .attr("r", function(d, i) { return self.rscale(d.size); })
             .style("fill", function(d, i) { return color(d.group1); })
             .style("stroke", function(d, i) { if (d.isu == 1) { return "#000"; } });
@@ -394,8 +303,8 @@ function linearLayout(graph, element) {
             .append("circle")
             .attr("class", "node")
             .attr("id", function(d, i) { return d.name; })
-            .attr("cx", function(d, i) { return self.getXY(d).x; })
-            .attr("cy", function(d, i) { return self.getXY(d).y;; })
+            .attr("cx", function(d, i) { return d[self.layoutName].position.x; })
+            .attr("cy", function(d, i) { return d[self.layoutName].position.y; })
             .attr("r", function(d, i) { return self.rscale(d.size); })
             .style("fill", function(d, i) { return color(d.group1); })
             .style("stroke", function(d, i) { if (d.isu == 1) { return "#000"; } })
@@ -409,14 +318,14 @@ function linearLayout(graph, element) {
         var tooltips = this.gElement.selectAll(".tooltip").data(this.graph.nodes, function(d) { return d.name; });
 
         tooltips.transition().duration(500).text(function(d) { return d.size; })
-            .attr("x", function(d) { return self.getXY(d).x; })
-            .attr("y", function(d) { return self.getXY(d).y; })
+            .attr("x", function(d, i) { return d[self.layoutName].position.x; })
+            .attr("y", function(d, i) { return d[self.layoutName].position.y; })
             .attr("dy", -this.radius * 1)
 
         tooltips.enter().append("text")
             .text(function(d) { return d.size; })
-            .attr("x", function(d) { return self.getXY(d).x; })
-            .attr("y", function(d) { return self.getXY(d).y; })
+            .attr("x", function(d, i) { return d[self.layoutName].position.x; })
+            .attr("y", function(d, i) { return d[self.layoutName].position.y; })
             .attr("dy", -this.radius * 1)
             .attr("circle", function(d) { return d.name; })
             .attr("class", "tooltip");
@@ -451,57 +360,22 @@ function linearLayout(graph, element) {
     }
 
     this.moveTo = function(d, newIndex) {
-        var oldIndex = d.order;
+        var oldIndex = self.getOrder(d);
 
-        var texts = [];
+        this.graph.nodes.forEach(function(x, i) {
+            var o = self.getOrder(x, i);
+            if (o > oldIndex && o <= newIndex) {
+                self.setOrder(x, o - 1);
+            } else if (o < oldIndex && o >= newIndex) {
+                self.setOrder(x, o + 1);
+            }
+        });
 
-        this.nodesgElement.selectAll(".node")
-            .each(function(x, i) {
-                if (x.order > oldIndex && x.order <= newIndex) {
-                    x.order -= 1;
-                } else if (x.order < oldIndex && x.order >= newIndex) {
-                    x.order += 1;
-                }
-            });
+        self.setOrder(d, newIndex);
 
-        d.order = newIndex;
-
-        this.nodesgElement.selectAll(".node")
-            .transition().duration(500)
-            .attr("cx", function(dd, i) { return self.getXY(dd).x; })
-            .each(function(x, i) {
-                texts[x.order] = x.size;
-            });
-
-        this.updateHalfLine();
-
-        this.drawLinks();
-
-        this.updateCuts();
-
-        var cutScaler = d3.scale.linear()
-            .domain([d3.min(this.cuts), d3.max(this.cuts)])
-            .range([0, 1]);
-
-        this.gElement.selectAll(".cutwidths").data(this.graph.nodes, function(d) { return d.name; })
-            .text(function(d, i) { return d.cut; })
-            .attr("x", function(d, i) { return self.xscale(d.order + 0.5); })
-            .attr("y", self.yfixed + 120)
-            .attr("text-anchor", "end")
-            .attr("fill", function(d, i) { return colorText(cutScaler(d.cut)); });
-
-        var tooltips = this.gElement.selectAll(".tooltip").data(this.graph.nodes, function(d) { return d.name; });
-        tooltips.transition().duration(500).text(function(d) { return d.size; })
-            .attr("x", function(d) { return self.getXY(d).x; })
-            .attr("y", function(d) { return self.getXY(d).y; })
-            .attr("dy", -this.radius * 1);
-
-        // var tooltipsb = this.gElement.selectAll(".tooltipb").data(this.graph.nodes, function (d) { return d.name; });
-        // tooltipsb.transition().duration(500).text(function (d) { return d.bitonic; })
-        //     .attr("x", function (d) { return self.getXY(d).x; });
-
-        this.updateArrows();
+        this.update();
         updateAll(this);
+        return;
     }
 
     this.dragmove = function(d) {
@@ -510,13 +384,9 @@ function linearLayout(graph, element) {
         if (self.xscale) {
             var mousex = d3.mouse(this.gElement.node())[0];
             var newIndex = Math.round(self.xscale.invert(mousex));
+            newIndex = Math.min(Math.max(0, newIndex), this.graph.nodes.length - 1);
 
-            if (newIndex < 0)
-                newIndex = 0;
-            if (newIndex > this.graph.nodes.length - 1)
-                newIndex = this.graph.nodes.length - 1;
-
-            if (newIndex != d.order) {
+            if (newIndex != self.getOrder(d)) {
                 lock = true;
                 this.moveTo(d, newIndex);
                 lock = false;
@@ -526,12 +396,12 @@ function linearLayout(graph, element) {
 
     this.dragstart = function(d3node, d) {
         d3.select(d3node)
-            .attr("r", d.r * 1.5)
-            .attr("cy", self.getXY(d).y - 50);
+            .attr("r", self.rscale(d.size) * 1.5)
+            .attr("cy", d[self.layoutName].position.y - 50);
     }
 
     this.dragend = function(d3node, d) {
-        d3.select(d3node).attr("r", d.r).attr("cy", self.getXY(d).y);
+        d3.select(d3node).attr("r", self.rscale(d.size)).attr("cy", d[self.layoutName].position.y);
     }
 
     /* 
@@ -539,7 +409,6 @@ function linearLayout(graph, element) {
      */
     this.drawLinks = function() {
         var color = color = d3.scale.category10();
-        // add links
         var linksSel = this.gElement.selectAll(".link").data(this.graph.links);
 
         linksSel.attr("d", drawlink)
@@ -555,17 +424,142 @@ function linearLayout(graph, element) {
     }
 
     /* 
-     *  Draw curved link
+     *  Helper function to draw curved link
      */
     function drawlink(d, i) {
-        var dx = self.getXY(d.target).x - self.getXY(d.source).x,
-            dy = self.getXY(d.target).y - self.getXY(d.source).y,
+        var dx = d.target[self.layoutName].position.x - d.source[self.layoutName].position.x,
+            dy = d.target[self.layoutName].position.y - d.source[self.layoutName].position.y,
             dr = Math.sqrt(dx * dx + dy * dy);
         return "M" +
-            self.getXY(d.source).x + "," +
-            self.getXY(d.source).y + "A" +
+            d.source[self.layoutName].position.x + "," +
+            d.source[self.layoutName].position.y + "A" +
             dr + "," + (dr * 1.4) + " 0 0,1 " +
-            self.getXY(d.target).x + "," +
-            self.getXY(d.target).y;
+            d.target[self.layoutName].position.x + "," +
+            d.target[self.layoutName].position.y;
     }
+
+    /*
+     * Called on resize of window
+     */
+    this.resize = function() {
+        this.rescale();
+    }
+
+    this.drawCutlines = function() {
+        // var cutLines = []
+        // for (var i = 0; i < this.graph.nodes.length; i++) {
+        //     cutLines.push(i + 0.5);
+        // }
+
+        // var cutlines = this.gElement.selectAll(".cuts").data(cutLines);
+
+        // cutlines.transition().duration(500).attr("x1", function(d, i) { return self.xscale(i + 0.5); })
+        //     .attr("x2", function(d, i) { return self.xscale(i + 0.5); })
+        //     .attr("y1", self.yfixed - 50)
+        //     .attr("y2", height);
+
+        // cutlines.enter()
+        //     .append("line")
+        //     .attr("class", "cuts")
+        //     .attr("x1", function(d, i) { return self.xscale(i + 0.5); })
+        //     .attr("x2", function(d, i) { return self.xscale(i + 0.5); })
+        //     .attr("y1", self.yfixed - 50)
+        //     .attr("y2", height);
+
+        // cutlines.exit().remove();
+
+        var cutScaler = d3.scale.linear()
+            .domain([d3.min(this.cuts), d3.max(this.cuts)])
+            .range([0, 1]);
+
+        colorText = d3.interpolateHsl(d3.rgb("#dadaeb"), d3.rgb("#756bb1"));
+
+        var cutTexts = this.gElement.selectAll(".cutwidths")
+            .data(this.graph.nodes, function(d) { return d.name; });
+
+        cutTexts.transition().duration(500)
+            .text(function(d, i) { return d.cut; })
+            .attr("x", function(d, i) { return self.xscale(self.getOrder(d, i) + 0.5); })
+            .attr("y", self.yfixed + 120)
+            .attr("text-anchor", "end")
+            .attr("fill", function(d, i) { return colorText(cutScaler(d.cut)); });
+
+        cutTexts.enter()
+            .append("text")
+            .attr("class", "cutwidths")
+            .text(function(d, i) { return d.cut; })
+            .attr("x", function(d, i) { return self.xscale(self.getOrder(d, i) + 0.5); })
+            .attr("y", self.yfixed + 120)
+            .attr("text-anchor", "end")
+            .attr("fill", function(d, i) { return colorText(cutScaler(d.cut)); });
+
+        cutTexts.exit().remove();
+    }
+
+    this.drawTooltipsB = function() {
+        // draw bitonic value
+        // var tooltipsb = this.gElement.selectAll(".tooltipb").data(this.graph.nodes, function (d) { return d.name; });
+
+        // tooltipsb.transition().duration(500).text(function (d) { return d.bitonic; })
+        //     .attr("x", function (d) { return self.getXY(d).x; })
+        //     .attr("y", function (d) { return self.getXY(d).y; })
+        //     .attr("dy", this.radius * 1.5)
+
+        // tooltipsb.enter().append("text")
+        //     .text(function (d) { return d.bitonic; })
+        //     .attr("x", function (d) { return self.getXY(d).x; })
+        //     .attr("y", function (d) { return self.getXY(d).y; })
+        //     .attr("dy", this.radius * 1.5)
+        //     .attr("circle", function (d) { return d.name; })
+        //     .attr("text-anchor", "middle")
+        //     .attr("class", "tooltipb");
+
+        // tooltipsb.exit().remove();
+
+    }
+
+
+    this.drawArrows = function() {
+        //
+        //var arrowsRight = this.gElement.selectAll(".arrowR").data(this.graph.nodes);
+        //arrowsRight.transition().duration(500)
+        //        .attr("x1", function (d) { return self.getXY(d).x; })
+        //        .attr("y1", function (d) { return self.getXY(d).y + self.radius * 2; })
+        //        .attr("x2", function (d) { return self.getXY(d).x + self.radius; })
+        //        .attr("y2", function (d) { return self.getXY(d).y + self.radius * 2; })
+        //        .attr("marker-end", function (d) { return (d.moveRight ? "url(#arrow)" : null); });
+
+        //arrowsRight.enter()
+        //        .append("svg:line")
+        //        .attr("x1", function (d) { return self.getXY(d).x; })
+        //        .attr("y1", function (d) { return self.getXY(d).y + self.radius * 2; })
+        //        .attr("x2", function (d) { return self.getXY(d).x + self.radius; })
+        //        .attr("y2", function (d) { return self.getXY(d).y + self.radius * 2; })
+        //        .attr("class", "arrowR")
+        //        .attr("marker-end", function (d) { return (d.moveRight ? "url(#arrow)" : null); });
+        //arrowsRight.exit().remove();
+
+        //var arrowsLeft = this.gElement.selectAll(".arrowL").data(this.graph.nodes);
+        //arrowsLeft.transition().duration(500)
+        //        .attr("x1", function (d) { return self.getXY(d).x; })
+        //        .attr("y1", function (d) { return self.getXY(d).y + self.radius * 2; })
+        //        .attr("x2", function (d) { return self.getXY(d).x - self.radius; })
+        //        .attr("y2", function (d) { return self.getXY(d).y + self.radius * 2; })
+        //        .attr("marker-end", function (d) { return (d.moveLeft ? "url(#arrow)" : null); });
+
+        //arrowsLeft.data(this.graph.nodes).enter().append("svg:line")
+        //        .attr("x1", function (d) { return self.getXY(d).x; })
+        //        .attr("y1", function (d) { return self.getXY(d).y + self.radius * 2; })
+        //        .attr("x2", function (d) { return self.getXY(d).x - self.radius; })
+        //        .attr("y2", function (d) { return self.getXY(d).y + self.radius * 2; })
+        //        .attr("class", "arrowL")
+        //        .attr("marker-end", function (d) { return (d.moveLeft ? "url(#arrow)" : null); });
+        //arrowsLeft.exit().remove();
+    }
+
+    /*
+     * Constructor
+     */
+
+    this.update();
 }
