@@ -17,10 +17,12 @@
     <link href="style.css" rel="stylesheet" type="text/css">
 
     <script src="genericGraph.js"></script>
+    <script src="lvl1Graph.js"></script>
     <script src="treeLayout.js"></script>
     <script src="dynamic-algorithm.js"></script>
     <script src="bipartite.js"></script>
     <script src="linearLayout.js"></script>
+    <script src="math.js"></script>
     <script>
         /* GLOBALS */
         var margin = 80; // amount of margin around plot area
@@ -36,27 +38,35 @@
 
         var lock = false;
         var gGraph = null;
-        var layouts = [];
+        var m = null;
 
         $(document).ready(function() {
             //arcDiagram({ "nodes": [{ "name": "n0", "parent": null, "size": 4 }], "links": [] });
             arcDiagram(randomGraph());
 
             window.addEventListener('resize', function(event) {
-                updateAll(null, true);
+                gGraph.updateAll(null, true);
             });
-        });
 
-        function updateAll(caller, resize) {
-            for (var i = 0; i < layouts.length; i++) {
-                if (!caller || layouts[i] !== caller) {
-                    layouts[i].update();
-                    if (resize) {
-                        layouts[i].resize();
-                    }
-                }
-            }
-        }
+            //     m = math.matrix([
+            //         [0, 0, 1],
+            //         [0, 0, 0],
+            //         [1, 0, 0]
+            //     ]);
+
+            //     for (var kk = 0; kk < 64; kk++) {
+            //         var N = 4;
+            //         var t = $("<table class='table'><tbody></tbody></table>").appendTo("body");
+
+            //         for (var i = 0; i < N; i++) {
+            //             var row = $("<tr></tr>").appendTo(t);
+            //             for (var j = 0; j < N; j++) {
+            //                 var c = 0;
+            //                 row.append("<td>" + c + "</td>");
+            //             }
+            //         }
+            //     }
+        });
 
         function getRandomIntInclusive(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -137,32 +147,12 @@
             d3.select("svg").remove();
             // svgDefs(svg);
 
-            // fix graph links to map to objects instead of indices
-            graph.links.forEach(function(d, i) {
-                d.source = isNaN(d.source) ? d.source : graph.nodes[d.source];
-                d.target = isNaN(d.target) ? d.target : graph.nodes[d.target];
-            });
-
             var tree = new treeLayout(gGraph, d3.select("#tree-cont"));
             var linear = new linearLayout(gGraph, d3.select("#lin-cont"), "layout1");
             var linear2 = new linearLayout(gGraph, d3.select("#lin3-cont"), "layout3", false);
 
-            var lvl1Links = graph.links.filter(function(e) {
-                var d1 = Math.max(e.source.depth, e.target.depth);
-                var d2 = Math.min(e.source.depth, e.target.depth);
-                return d2 == 0;
-            });
-
-            newLinearLayout = new linearLayout(new genericGraph(graph.nodes, lvl1Links), d3.select("#lin2-cont"), "layout2");
-            gGraph.addLayout(tree);
-            gGraph.addLayout(linear);
-            gGraph.addLayout(newLinearLayout);
-            gGraph.addLayout(linear2);
-
-            layouts.push(tree);
-            layouts.push(linear);
-            layouts.push(newLinearLayout);
-            layouts.push(linear2);
+            var lvl1Graph = gGraph.createlvl1Graph();
+            var linear3 = new linearLayout(lvl1Graph, d3.select("#lin2-cont"), "layout2");
 
             // var plotBipartite = svg.append("g").attr("id", "bipartite").attr("transform", "translate(" + window.innerWidth * 0.8 + "," + (pad + 250) + ")");
 

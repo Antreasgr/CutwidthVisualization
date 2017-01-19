@@ -3,6 +3,7 @@ function genericGraph(nodes, links) {
     this.links = links;
     this.selection = null;
     this.layouts = [];
+    this.linkedGraphs = [];
 
     var self = this;
     var lock = false;
@@ -11,31 +12,108 @@ function genericGraph(nodes, links) {
     this.minOrders = null;
     this.minOrderIndex = 0;
 
+    // fix graph links to map to objects instead of indices
+    this.links.forEach(function(d, i) {
+        d.source = isNaN(d.source) ? d.source : self.nodes[d.source];
+        d.target = isNaN(d.target) ? d.target : self.nodes[d.target];
+    });
+
     this.addLayout = function(layout) {
         this.layouts.push(layout);
     }
 
-    this.calculateNeighbours = function(root) {
-        /// Calculate neighbourhoods
-        // TODO: fix root 
-        if (Array.isArray(root)) {
-            root = root[0];
-        }
+    this.updateAll = function(caller, resize) {
+        var l = this.linkedGraphs.map((a) => a.layouts);
+        var allLayouts = l.reduce((p, n) => p.concat(n), []);
+        allLayouts.push.apply(allLayouts, this.layouts);
 
-        var s = root;
+        for (var i = 0; i < allLayouts.length; i++) {
+            if (!caller || allLayouts[i] !== caller) {
+                allLayouts[i].update();
+            }
 
-        function ndfs(nnode) {
-            nnode.neighbourhood = 0;
-            if (nnode.children && nnode.children.length > 0) {
-                for (var i = 0; i < nnode.children.length; i++) {
-                    ndfs(nnode.children[i]);
-                    nnode.neighbourhood += nnode.children[i].neighbourhood + nnode.children[i].size;
-                }
-            } else {
-                nnode.neighbourhood = 0;
+            if (resize) {
+                allLayouts[i].resize();
             }
         }
-        ndfs(root);
+    }
+
+    this.createlvl1Graph = function() {
+        var g = new lvl1Graph(this);
+        this.addLinkedGraph(g);
+        return g;
+    }
+
+    this.addLinkedGraph = function(graph) {
+        this.linkedGraphs.push(graph);
+    }
+
+    this.svgKeyDown = function() {
+        if (lock)
+            return;
+        if (this.selection) {
+            d3.event.stopPropagation();
+            if (d3.event.keyCode == 107 || d3.event.keyCode == 61) {
+                // + pressed
+                this.selection.size++;
+                this.minimumCutwidth = null;
+                this.updateAll();
+            } else if ((d3.event.keyCode == 109 || d3.event.keyCode == 173) && this.selection.size > 0) {
+                // - pressed
+                this.selection.size--;
+                this.minimumCutwidth = null;
+                this.updateAll();
+            } else if (d3.event.keyCode == 79) {
+                /*
+                    o pressed run polynomial ALGORITHM
+                    lock = true;
+                    this.BestOrder(this.selection);
+                    this.ArrangeAll();
+                    this.updateAll();
+                    lock = false;
+                */
+            }
+        }
+
+        if (d3.event.keyCode == 192) {
+            // ~ pressed
+            $(".well.debug").slideToggle();
+        }
+
+        if (d3.event.shiftKey && d3.event.keyCode == 188) {
+            // ,
+            if (this.minOrders != null) {
+                this.moveToNextOrdering(true);
+            }
+        }
+
+        if (d3.event.shiftKey && d3.event.keyCode == 190) {
+            // .
+            if (this.minOrders != null) {
+                this.moveToNextOrdering(false);
+            }
+        }
+
+        if (d3.event.shiftKey && d3.event.keyCode == 68) {
+            // d key
+            this.DynamicCutWidth(this);
+        }
+
+        // if (d3.event.shiftKey && d3.event.keyCode == 66) {
+        //     // b key
+        //     bpGraph.DynamicAlgorithm();
+        // }
+
+        if (d3.event.shiftKey && d3.event.keyCode == 84) {
+            // t
+            this.ThesholdOrder();
+        }
+
+        if (this.linkedGraphs.length > 0) {
+            for (var i = 0; i < this.linkedGraphs.length; i++) {
+                this.linkedGraphs[i].svgKeyDown();
+            }
+        }
     }
 
     this.treeclick = function(d, i) {
@@ -77,7 +155,7 @@ function genericGraph(nodes, links) {
                 console.log(child);
                 //TODO: fix remove nodes
                 this.removeNodes(removed);
-                updateAll();
+                this.updateAll();
             }
         } else {
             //add a children
@@ -107,77 +185,11 @@ function genericGraph(nodes, links) {
         lock = false;
     }
 
-    this.svgKeyDown = function() {
-        if (lock)
-            return;
-        if (this.selection) {
-            d3.event.stopPropagation();
-            if (d3.event.keyCode == 107 || d3.event.keyCode == 61) {
-                // + pressed
-                this.selection.size++;
-                this.minimumCutwidth = null;
-                updateAll();
-            } else if ((d3.event.keyCode == 109 || d3.event.keyCode == 173) && this.selection.size > 0) {
-                // - pressed
-                this.selection.size--;
-                this.minimumCutwidth = null;
-                updateAll();
-            } else if (d3.event.keyCode == 79) {
-                /*
-                    o pressed run polynomial ALGORITHM
-                    lock = true;
-                    this.BestOrder(this.selection);
-                    this.ArrangeAll();
-                    updateAll();
-                    lock = false;
-                */
-            }
-        }
-
-        if (d3.event.keyCode == 192) {
-            // ~ pressed
-            $(".well.debug").slideToggle();
-        }
-
-        if (d3.event.shiftKey && d3.event.keyCode == 188) {
-            // ,
-            if (this.minOrders != null) {
-                this.moveToNextOrdering(true);
-            }
-        }
-
-        if (d3.event.shiftKey && d3.event.keyCode == 190) {
-            // .
-            if (this.minOrders != null) {
-                this.moveToNextOrdering(false);
-            }
-        }
-
-        if (d3.event.shiftKey && d3.event.keyCode == 68) {
-            // d key
-            this.DynamicCutWidth(this);
-        }
-
-        if (d3.event.shiftKey && d3.event.keyCode == 69) {
-            // e key
-            // TODO: fix this
-            this.DynamicCutWidth(this.layouts[2].graph);
-        }
-
-        // if (d3.event.shiftKey && d3.event.keyCode == 66) {
-        //     // b key
-        //     bpGraph.DynamicAlgorithm();
-        // }
-
-        if (d3.event.shiftKey && d3.event.keyCode == 84) {
-            // t
-            this.ThesholdOrder();
-        }
-    }
-
     this.svgKeyUp = function() {
         d3.event.stopPropagation();
     }
+
+
 
     this.updateSelection = function(d) {
         this.selection = d;
@@ -192,7 +204,7 @@ function genericGraph(nodes, links) {
             t = t.parent;
         }
 
-        updateAll();
+        this.updateAll();
     }
 
     this.moveToNextOrdering = function(prev) {
@@ -216,7 +228,7 @@ function genericGraph(nodes, links) {
                 d.order = _this.minOrders[_this.minOrderIndex][i];
             });
 
-            updateAll();
+            this.updateAll();
         }
     }
 
@@ -243,7 +255,7 @@ function genericGraph(nodes, links) {
             }
         }
 
-        updateAll();
+        this.updateAll();
     }
 
     /*
@@ -570,7 +582,7 @@ function genericGraph(nodes, links) {
             }
         }
 
-        updateAll();
+        this.updateAll();
     }
 
     /*
@@ -618,15 +630,37 @@ function genericGraph(nodes, links) {
         dfs(n, false);
     }
 
+    this.calculateNeighbours = function(root) {
+        /// Calculate neighbourhoods
+        // TODO: fix root 
+        if (Array.isArray(root)) {
+            root = root[0];
+        }
+
+        var s = root;
+
+        function ndfs(nnode) {
+            nnode.neighbourhood = 0;
+            if (nnode.children && nnode.children.length > 0) {
+                for (var i = 0; i < nnode.children.length; i++) {
+                    ndfs(nnode.children[i]);
+                    nnode.neighbourhood += nnode.children[i].neighbourhood + nnode.children[i].size;
+                }
+            } else {
+                nnode.neighbourhood = 0;
+            }
+        }
+        ndfs(root);
+    }
+
     /*
      * Calculate best cutwidth using the Dynamic Algorithm
      */
     this.DynamicCutWidth = function(g) {
         var min = DynamicAlgorithm.DynamicCutWidth(g, DynamicAlgorithm.fCutWidth);
 
-
         g.minimumCutwidth = min.Value;
-        updateAll();
+        this.updateAll();
     }
 
     this.uuid = function() {

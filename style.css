@@ -467,3 +467,8 @@ code {
 .code-green {
     color: #3C763D;
 }
+
+.table {
+    float: left;
+    border-right: 1px dashed steelblue;
+}

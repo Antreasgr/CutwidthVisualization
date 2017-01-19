@@ -16,6 +16,8 @@ function linearLayout(graph, element, name, linked) {
 
     this.layoutName = name ? name : this.graph.uuid();
 
+    this.graph.addLayout(this);
+
     this.selectionChanged = function(d) {
 
     }
@@ -374,7 +376,7 @@ function linearLayout(graph, element, name, linked) {
         self.setOrder(d, newIndex);
 
         this.update();
-        updateAll(this);
+        this.graph.updateAll(this);
         return;
     }
 
