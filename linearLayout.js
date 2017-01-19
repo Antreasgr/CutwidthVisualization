@@ -57,6 +57,7 @@ function linearLayout(graph, element, name, linked) {
      * Main Method: Updates/Creates the everything that makes the linear layout
      */
     this.update = function() {
+        // console.log("Linear layout update: ", this.layoutName);
         // check if we have many orderings
         if (this.graph.order && this.graph.order.length > 0 && this.graph.order[0].length > 0) {
             this.minOrders = this.graph.order.slice();
@@ -138,7 +139,6 @@ function linearLayout(graph, element, name, linked) {
             .domain([0, d3.max(this.graph.nodes, function(d) { return d.size; })])
             .range([4, this.radius]);
     }
-
 
     this.updateCuts = function() {
         this.cuts = [];
@@ -339,10 +339,10 @@ function linearLayout(graph, element, name, linked) {
 
             if ((d.x - offset) < 0) {
                 d3.select(this).attr("text-anchor", "start");
-                d3.select(this).attr("dx", -radius);
+                d3.select(this).attr("dx", -this.radius);
             } else if ((d.x + offset) > (width - margin)) {
                 d3.select(this).attr("text-anchor", "end");
-                d3.select(this).attr("dx", radius);
+                d3.select(this).attr("dx", this.radius);
             } else {
                 d3.select(this).attr("text-anchor", "middle");
                 d3.select(this).attr("dx", 0);

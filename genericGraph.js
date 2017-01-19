@@ -23,6 +23,7 @@ function genericGraph(nodes, links) {
     }
 
     this.updateAll = function(caller, resize) {
+        // console.log("--------------------------------------------------------");
         var l = this.linkedGraphs.map((a) => a.layouts);
         var allLayouts = l.reduce((p, n) => p.concat(n), []);
         allLayouts.push.apply(allLayouts, this.layouts);
@@ -123,63 +124,10 @@ function genericGraph(nodes, links) {
         lock = true;
         this.minimumCutwidth = null;
         if (d3.event.altKey) {
-            //remove this node and children
-            if (d.parent && d.parent != "null") {
-                var removed = [];
-
-                for (var i = d.parent.children.length - 1; i >= 0; i--) {
-                    if (d.parent.children[i] === d) {
-                        removed.push(d.parent.children[i]);
-                        d.parent.children.splice(i, 1);
-                    }
-                }
-
-                //cannot remove the root node
-                if (d.children) {
-                    var stack = [d];
-
-                    var n = stack.pop();
-                    while (n != null && n.children != null && n.children.length > 0) {
-                        for (var i = 0; i < n.children.length; i++) {
-                            removed.push(n.children[i]);
-                            if (n.children[i].children) {
-                                stack.push(n.children[i]);
-                            }
-                        }
-
-                        n.children = null;
-                        n = stack.pop();
-                    }
-                }
-
-                console.log(child);
-                //TODO: fix remove nodes
-                this.removeNodes(removed);
-                this.updateAll();
-            }
+            this.removeNodes(d);
         } else {
             //add a children
-            if (!d.children) {
-                d.children = [];
-                d.group1 = this.nodes.length;
-            }
-
-            //find next available name
-            var newName = this.uuid();
-            var stack = [];
-
-            var child = {
-                name: newName,
-                parent: d,
-                size: 1,
-                x: 0,
-                y: 0,
-                order: this.nodes.length,
-                group1: d.group1
-            };
-
-            d.children.push(child);
-            this.addNode(child);
+            this.addNode(d);
         }
 
         lock = false;
@@ -189,22 +137,106 @@ function genericGraph(nodes, links) {
         d3.event.stopPropagation();
     }
 
-
-
     this.updateSelection = function(d) {
         this.selection = d;
     }
 
-    this.addNode = function(child) {
+    this.addNode = function(d) {
+        if (!d.children) {
+            d.children = [];
+            d.group1 = this.nodes.length;
+        }
+
+        // find next available name
+        var newName = this.uuid();
+
+        var child = {
+            name: newName,
+            parent: d,
+            size: 1,
+            x: 0,
+            y: 0,
+            order: this.nodes.length,
+            group1: d.group1
+        };
+
+        d.children.push(child);
         this.nodes.push(child);
         // we need to add the links too
         var t = child;
-        while (t.parent != null && t.parent != "null") {
+        while (t.parent) {
             this.links.push({ source: child, target: t.parent });
             t = t.parent;
         }
 
+        for (var i = 0; i < this.linkedGraphs.length; i++) {
+            var g = this.linkedGraphs[i];
+            g.addNode(d);
+        }
+
         this.updateAll();
+    }
+
+    this.removeNodes = function(d) {
+        //remove this node and children
+        //TODO: fix remove nodes
+        if (d.parent) {
+            var removed = [];
+
+            for (var i = d.parent.children.length - 1; i >= 0; i--) {
+                if (d.parent.children[i] === d) {
+                    removed.push(d.parent.children[i]);
+                    d.parent.children.splice(i, 1);
+                }
+            }
+
+            //cannot remove the root node
+            if (d.children) {
+                var stack = [d];
+
+                var n = stack.pop();
+                while (n != null && n.children != null && n.children.length > 0) {
+                    for (var i = 0; i < n.children.length; i++) {
+                        removed.push(n.children[i]);
+                        if (n.children[i].children) {
+                            stack.push(n.children[i]);
+                        }
+                    }
+
+                    n.children = null;
+                    n = stack.pop();
+                }
+            }
+
+            for (var n = 0; n < removed.length; n++) {
+                //remove links
+                for (var i = this.links.length - 1; i >= 0; i--) {
+                    if (this.links[i].source === removed[n] || this.links[i].target === removed[n]) {
+                        this.links.splice(i, 1);
+                    }
+                }
+
+                // now remove node
+                for (var i = this.nodes.length - 1; i >= 0; i--) {
+                    if (this.nodes[i] === removed[n]) {
+                        var o = this.nodes[i].order;
+                        this.nodes.splice(i, 1);
+
+                        for (var j = 0; j < this.nodes.length; j++) {
+                            if (this.nodes[j].order > o)
+                                this.nodes[j].order--;
+                        }
+                    }
+                }
+            }
+
+            for (var i = 0; i < this.linkedGraphs.length; i++) {
+                var g = this.linkedGraphs[i];
+                g.removeNodes(d);
+            }
+
+            this.updateAll();
+        }
     }
 
     this.moveToNextOrdering = function(prev) {
@@ -230,32 +262,6 @@ function genericGraph(nodes, links) {
 
             this.updateAll();
         }
-    }
-
-    this.removeNodes = function(nodes) {
-        for (var n = 0; n < nodes.length; n++) {
-            //remove links
-            for (var i = this.links.length - 1; i >= 0; i--) {
-                if (this.links[i].source === nodes[n] || this.links[i].target === nodes[n]) {
-                    this.links.splice(i, 1);
-                }
-            }
-
-            // now remove node
-            for (var i = this.nodes.length - 1; i >= 0; i--) {
-                if (this.nodes[i] === nodes[n]) {
-                    var o = this.nodes[i].order;
-                    this.nodes.splice(i, 1);
-
-                    for (var j = 0; j < this.nodes.length; j++) {
-                        if (this.nodes[j].order > o)
-                            this.nodes[j].order--;
-                    }
-                }
-            }
-        }
-
-        this.updateAll();
     }
 
     /*

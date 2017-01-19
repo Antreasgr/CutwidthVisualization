@@ -1,17 +1,13 @@
 function lvl1Graph(parentGraph) {
+    var self = this;
     this.parentGraph = parentGraph;
     this.layouts = [];
 
-    var lvl1Links = parentGraph.links.filter(function(e) {
-        var d1 = Math.max(e.source.depth, e.target.depth);
-        var d2 = Math.min(e.source.depth, e.target.depth);
-        return d2 == 0;
-    });
+    var lvl1Links = getLinks();
 
     this.graph = new genericGraph(parentGraph.nodes, lvl1Links);
     this.nodes = parentGraph.nodes;
     this.links = lvl1Links;
-    var self = this;
 
     this.addLayout = function(layout) {
         layout.graph = this.graph;
@@ -29,5 +25,21 @@ function lvl1Graph(parentGraph) {
             this.minimumCutwidth = this.graph.minimumCutwidth.Value;
             this.parentGraph.updateAll();
         }
+    }
+
+    this.addNode = function(d) {
+        this.links = getLinks();
+        this.graph.links = this.links;
+        this.minimumCutwidth = null;
+    }
+
+    this.removeNode = function(d) {
+        this.links = getLinks();
+        this.graph.links = this.links;
+        this.minimumCutwidth = null;
+    }
+
+    function getLinks() {
+        return self.parentGraph.links.filter(e => e.source.parent == null || e.target.parent == null);
     }
 }

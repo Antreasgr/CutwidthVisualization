@@ -9,21 +9,22 @@ function treeLayout(graph, element) {
     this.diagonal = d3.svg.diagonal().projection(function(d) { return [d.x, d.y]; });
 
     var self = this;
+    this.graph.addLayout(this);
 
     this.createTree = function() {
         var w = this.svgElement.node().getBoundingClientRect().width;
         var h = this.svgElement.node().getBoundingClientRect().height;
         this.tree = d3.layout.tree().size([w, h]);
 
-        if (graph.nodes.length > 0) {
-            var dataMap = graph.nodes.reduce(function(map, node) {
+        if (this.graph.nodes.length > 0) {
+            var dataMap = this.graph.nodes.reduce(function(map, node) {
                 map[node.name] = node;
                 return map;
             }, {});
 
             var nextIndex = 1;
             var t = this;
-            graph.nodes.forEach(function(d, i) {
+            this.graph.nodes.forEach(function(d, i) {
                 // add to parent
                 var parent = dataMap[d.parent];
                 if (parent) {
@@ -60,6 +61,7 @@ function treeLayout(graph, element) {
     }
 
     this.update = function(r) {
+        // console.log("Update tree");
         if (!r) {
             r = this.root;
         }
