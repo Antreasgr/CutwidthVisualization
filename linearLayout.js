@@ -40,6 +40,8 @@ function linearLayout(graph, element, name, linked) {
         i = i === "undefined" ? 0 : i;
         var o = self.linked ? d : (d[self.layoutName] = d[self.layoutName] || {});
         o.order = o.order != null ? o.order : i;
+        // o.order = Math.min(o.order, this.graph.nodes.length - 1);
+        // o.order = Math.max(o.order, 0);
         return o.order;
     }
 
@@ -51,6 +53,11 @@ function linearLayout(graph, element, name, linked) {
     this.setOrder = function(d, value) {
         var o = this.linked ? d : (d[self.layoutName] = d[self.layoutName] || {});
         o.order = value;
+    }
+
+    this.onGraphUpdated = function() {
+        var nodesCopy = this.graph.nodes.slice().sort((a, b) => this.getOrder(a, 0) - this.getOrder(b, 1));
+        nodesCopy.forEach((n, i) => this.setOrder(n, i));
     }
 
     /*
@@ -91,6 +98,14 @@ function linearLayout(graph, element, name, linked) {
 
         // create arrow lines
         this.drawArrows();
+    }
+
+    this.addNode = function() {
+
+    }
+
+    this.removeNodes = function() {
+
     }
 
     this.updateHalfLine = function() {

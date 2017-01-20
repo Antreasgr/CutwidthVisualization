@@ -39,6 +39,16 @@ function genericGraph(nodes, links) {
         }
     }
 
+    this.graphUpdated = function() {
+        var l = this.linkedGraphs.map((a) => a.layouts);
+        var allLayouts = l.reduce((p, n) => p.concat(n), []);
+        allLayouts.push.apply(allLayouts, this.layouts);
+
+        for (var i = 0; i < allLayouts.length; i++) {
+            allLayouts[i].onGraphUpdated();
+        }
+    }
+
     this.createlvl1Graph = function() {
         var g = new lvl1Graph(this);
         this.addLinkedGraph(g);
@@ -174,12 +184,14 @@ function genericGraph(nodes, links) {
             g.addNode(d);
         }
 
+        this.graphUpdated();
         this.updateAll();
     }
 
     this.removeNodes = function(d) {
         //remove this node and children
         //TODO: fix remove nodes
+        //cannot remove the root node
         if (d.parent) {
             var removed = [];
 
@@ -190,7 +202,6 @@ function genericGraph(nodes, links) {
                 }
             }
 
-            //cannot remove the root node
             if (d.children) {
                 var stack = [d];
 
@@ -208,33 +219,15 @@ function genericGraph(nodes, links) {
                 }
             }
 
-            for (var n = 0; n < removed.length; n++) {
-                //remove links
-                for (var i = this.links.length - 1; i >= 0; i--) {
-                    if (this.links[i].source === removed[n] || this.links[i].target === removed[n]) {
-                        this.links.splice(i, 1);
-                    }
-                }
-
-                // now remove node
-                for (var i = this.nodes.length - 1; i >= 0; i--) {
-                    if (this.nodes[i] === removed[n]) {
-                        var o = this.nodes[i].order;
-                        this.nodes.splice(i, 1);
-
-                        for (var j = 0; j < this.nodes.length; j++) {
-                            if (this.nodes[j].order > o)
-                                this.nodes[j].order--;
-                        }
-                    }
-                }
-            }
+            this.links = this.links.filter(l => removed.indexOf(l.source) < 0 && removed.indexOf(l.target) < 0);
+            this.nodes = this.nodes.filter(n => removed.indexOf(n) < 0);
 
             for (var i = 0; i < this.linkedGraphs.length; i++) {
                 var g = this.linkedGraphs[i];
                 g.removeNodes(d);
             }
 
+            this.graphUpdated();
             this.updateAll();
         }
     }

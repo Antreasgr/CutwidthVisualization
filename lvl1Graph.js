@@ -28,12 +28,16 @@ function lvl1Graph(parentGraph) {
     }
 
     this.addNode = function(d) {
+        this.nodes = parentGraph.nodes;
+        this.graph.nodes = parentGraph.nodes;
         this.links = getLinks();
         this.graph.links = this.links;
         this.minimumCutwidth = null;
     }
 
-    this.removeNode = function(d) {
+    this.removeNodes = function(d) {
+        this.nodes = parentGraph.nodes;
+        this.graph.nodes = parentGraph.nodes;
         this.links = getLinks();
         this.graph.links = this.links;
         this.minimumCutwidth = null;

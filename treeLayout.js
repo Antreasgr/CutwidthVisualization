@@ -60,6 +60,10 @@ function treeLayout(graph, element) {
         this.update(this.root);
     }
 
+    this.onGraphUpdated = function() {
+
+    }
+
     this.update = function(r) {
         // console.log("Update tree");
         if (!r) {
