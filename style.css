@@ -1,7 +1,4 @@
-.treenode>text {}
-
 body {
-    /*font-family: 'Source Sans Pro', sans-serif;*/
     font-weight: 300;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-size: 14px;
@@ -425,8 +422,6 @@ b {
 .treenode.active {
     stroke: #4E60fF;
 }
-
-svg {}
 
 code {
     padding: 2px 4px;

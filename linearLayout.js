@@ -13,6 +13,7 @@ function linearLayout(graph, element, name, linked) {
 
     this.cuts = [];
     var self = this;
+    var delay = 250;
 
     this.layoutName = name ? name : this.graph.uuid();
 
@@ -26,7 +27,7 @@ function linearLayout(graph, element, name, linked) {
      * Gets the x, y position of a node on the linear layout
      */
     this.getXY = function(d, i) {
-        var xy = { x: this.xscale(self.getOrder(d, i)), y: self.yfixed + d.y / 10 };
+        var xy = { x: this.xscale(self.getOrder(d, i)), y: self.yfixed /*+ d.y / 10 */ };
         return xy;
     }
 
@@ -121,7 +122,7 @@ function linearLayout(graph, element, name, linked) {
                 var halfline = this.gElement.selectAll(".halfline")
                     .data([half == 0 ? self.getOrder(nodesCopy[i], i) + 0.5 : self.getOrder(nodesCopy[i], i)]);
 
-                halfline.transition().duration(500)
+                halfline.transition().duration(delay)
                     .attr("x1", function(d, i) { return self.xscale(d); })
                     .attr("x2", function(d, i) { return self.xscale(d); });
 
@@ -194,9 +195,7 @@ function linearLayout(graph, element, name, linked) {
                 for (var pp = 0; pp <= node.size; pp++) {
                     // Calculate cut
                     cut = Math.max(cut, pp * (node.size - pp) + pp * right + (node.size - pp) * left);
-
                     // Calculate fi or gi
-
                     if (o != universalO) {
                         var value = 0;
                         if (o < universalO) {
@@ -215,32 +214,32 @@ function linearLayout(graph, element, name, linked) {
                 }
 
                 self.cuts.push(independentCut + cut);
-                node.cut = independentCut + cut;
+                node[self.layoutName].cut = independentCut + cut;
 
-                node.bitonic = (right - left - node.size) / 2;
+                node[self.layoutName].bitonic = node.size * (right - left) / 2;
 
-                node.nLeft = left;
-                node.nRight = right;
+                node[self.layoutName].nLeft = Math.abs(node.size - (right - left));
+                node[self.layoutName].nRight = node.size * (right - left); // node.size * right;
 
                 // Calculate the arrows
-                node.moveLeft = false;
-                node.moveRight = false;
+                node[self.layoutName].moveLeft = false;
+                node[self.layoutName].moveRight = false;
                 if (o < universalO) {
                     if (fmaxes.length == 1) {
                         if (fmaxes[0] > node.size - fmaxes[0]) {
                             // Li > Ri
-                            node.moveRight = true;
+                            node[self.layoutName].moveRight = true;
                         } else if (fmaxes[0] < node.size - fmaxes[0]) {
-                            node.moveLeft = true;
+                            node[self.layoutName].moveLeft = true;
                         }
                     }
                 } else if (o > universalO) {
                     if (fmaxes.length == 1) {
                         if (fmaxes[0] > node.size - fmaxes[0]) {
                             // Li > Ri
-                            node.moveLeft = true;
+                            node[self.layoutName].moveLeft = true;
                         } else if (fmaxes[0] < node.size - fmaxes[0]) {
-                            node.moveRight = true;
+                            node[self.layoutName].moveRight = true;
                         }
                     }
                 }
@@ -290,7 +289,6 @@ function linearLayout(graph, element, name, linked) {
         var w = this.svgElement.node().getBoundingClientRect().width;
         this.gElement.select(".maxcut").text(txt).attr("x", w / 2).attr("y", pad + 10);
         return txt;
-        // console.log(txt);
     }
 
     /* 
@@ -309,7 +307,7 @@ function linearLayout(graph, element, name, linked) {
         var node = this.nodesgElement.selectAll(".node")
             .data(this.graph.nodes, function(d) { return d.name; });
 
-        node.transition().duration(500)
+        node.transition().duration(delay)
             .attr("cx", function(d, i) { return d[self.layoutName].position.x; })
             .attr("cy", function(d, i) { return d[self.layoutName].position.y; })
             .attr("r", function(d, i) { return self.rscale(d.size); })
@@ -334,7 +332,7 @@ function linearLayout(graph, element, name, linked) {
         // draw size texts
         var tooltips = this.gElement.selectAll(".tooltip").data(this.graph.nodes, function(d) { return d.name; });
 
-        tooltips.transition().duration(500).text(function(d) { return d.size; })
+        tooltips.transition().duration(delay).text(function(d) { return d.size; })
             .attr("x", function(d, i) { return d[self.layoutName].position.x; })
             .attr("y", function(d, i) { return d[self.layoutName].position.y; })
             .attr("dy", -this.radius * 1)
@@ -470,7 +468,7 @@ function linearLayout(graph, element, name, linked) {
 
         // var cutlines = this.gElement.selectAll(".cuts").data(cutLines);
 
-        // cutlines.transition().duration(500).attr("x1", function(d, i) { return self.xscale(i + 0.5); })
+        // cutlines.transition().duration(delay).attr("x1", function(d, i) { return self.xscale(i + 0.5); })
         //     .attr("x2", function(d, i) { return self.xscale(i + 0.5); })
         //     .attr("y1", self.yfixed - 50)
         //     .attr("y2", height);
@@ -494,52 +492,65 @@ function linearLayout(graph, element, name, linked) {
         var cutTexts = this.gElement.selectAll(".cutwidths")
             .data(this.graph.nodes, function(d) { return d.name; });
 
-        cutTexts.transition().duration(500)
-            .text(function(d, i) { return d.cut; })
+        cutTexts.transition().duration(delay)
+            .text(function(d, i) { return d[self.layoutName].cut; })
             .attr("x", function(d, i) { return self.xscale(self.getOrder(d, i) + 0.5); })
             .attr("y", self.yfixed + 120)
             .attr("text-anchor", "end")
-            .attr("fill", function(d, i) { return colorText(cutScaler(d.cut)); });
+            .attr("fill", function(d, i) { return colorText(cutScaler(d[self.layoutName].cut)); });
 
         cutTexts.enter()
             .append("text")
             .attr("class", "cutwidths")
-            .text(function(d, i) { return d.cut; })
+            .text(function(d, i) { return d[self.layoutName].cut; })
             .attr("x", function(d, i) { return self.xscale(self.getOrder(d, i) + 0.5); })
             .attr("y", self.yfixed + 120)
             .attr("text-anchor", "end")
-            .attr("fill", function(d, i) { return colorText(cutScaler(d.cut)); });
+            .attr("fill", function(d, i) { return colorText(cutScaler(d[self.layoutName].cut)); });
 
         cutTexts.exit().remove();
     }
 
     this.drawTooltipsB = function() {
         // draw bitonic value
-        // var tooltipsb = this.gElement.selectAll(".tooltipb").data(this.graph.nodes, function (d) { return d.name; });
+        var tooltipsbRight = this.gElement.selectAll(".tooltipb.right").data(this.graph.nodes, function(d) { return d.name; });
+        var tooltipsbLeft = this.gElement.selectAll(".tooltipb.left").data(this.graph.nodes, function(d) { return d.name; });
 
-        // tooltipsb.transition().duration(500).text(function (d) { return d.bitonic; })
-        //     .attr("x", function (d) { return self.getXY(d).x; })
-        //     .attr("y", function (d) { return self.getXY(d).y; })
-        //     .attr("dy", this.radius * 1.5)
+        tooltipsbRight.transition().duration(delay)
+            .text(function(d) { return d[self.layoutName].nRight; })
+            .attr("x", function(d) { return d[self.layoutName].position.x + 15; })
+            .attr("y", function(d) { return d[self.layoutName].position.y + 20; });
 
-        // tooltipsb.enter().append("text")
-        //     .text(function (d) { return d.bitonic; })
-        //     .attr("x", function (d) { return self.getXY(d).x; })
-        //     .attr("y", function (d) { return self.getXY(d).y; })
-        //     .attr("dy", this.radius * 1.5)
-        //     .attr("circle", function (d) { return d.name; })
-        //     .attr("text-anchor", "middle")
-        //     .attr("class", "tooltipb");
+        tooltipsbLeft.transition().duration(delay)
+            .text(function(d) { return d[self.layoutName].nLeft; })
+            .attr("x", function(d) { return d[self.layoutName].position.x - 15; })
+            .attr("y", function(d) { return d[self.layoutName].position.y + 20; });
 
-        // tooltipsb.exit().remove();
+        tooltipsbRight.enter()
+            .append("text")
+            .text(function(d) { return d[self.layoutName].nRight; })
+            .attr("text-anchor", "middle")
+            .attr("class", "tooltipb right")
+            .attr("x", function(d) { return d[self.layoutName].position.x + 15; })
+            .attr("y", function(d) { return d[self.layoutName].position.y + 20; });
 
+        tooltipsbLeft.enter()
+            .append("text")
+            .text(function(d) { return d[self.layoutName].nLeft; })
+            .attr("text-anchor", "middle")
+            .attr("class", "tooltipb left")
+            .attr("x", function(d) { return d[self.layoutName].position.x - 15; })
+            .attr("y", function(d) { return d[self.layoutName].position.y + 20; });
+
+        tooltipsbRight.exit().remove();
+        tooltipsbLeft.exit().remove();
     }
 
 
     this.drawArrows = function() {
         //
         //var arrowsRight = this.gElement.selectAll(".arrowR").data(this.graph.nodes);
-        //arrowsRight.transition().duration(500)
+        //arrowsRight.transition().duration(delay)
         //        .attr("x1", function (d) { return self.getXY(d).x; })
         //        .attr("y1", function (d) { return self.getXY(d).y + self.radius * 2; })
         //        .attr("x2", function (d) { return self.getXY(d).x + self.radius; })
@@ -557,7 +568,7 @@ function linearLayout(graph, element, name, linked) {
         //arrowsRight.exit().remove();
 
         //var arrowsLeft = this.gElement.selectAll(".arrowL").data(this.graph.nodes);
-        //arrowsLeft.transition().duration(500)
+        //arrowsLeft.transition().duration(delay)
         //        .attr("x1", function (d) { return self.getXY(d).x; })
         //        .attr("y1", function (d) { return self.getXY(d).y + self.radius * 2; })
         //        .attr("x2", function (d) { return self.getXY(d).x - self.radius; })

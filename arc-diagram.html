@@ -10,11 +10,8 @@
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
 
-    <!-- CSS Style //-->
-    <!--<link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,900|Source+Code+Pro:300" rel="stylesheet" type="text/css">-->
-    <!--<link href="http://fonts.googleapis.com/css?family=Helvetica%20Neue:300,900" rel="stylesheet" type="text/css">
-    <link href="http://fonts.googleapis.com/css?family=Open%20Sans:300,900" rel="stylesheet" type="text/css">-->
-    <link href="style.css" rel="stylesheet" type="text/css">
+    <!--<link href="style.css" rel="stylesheet" type="text/css">-->
+    <link href="simple.css" rel="stylesheet" type="text/css">
 
     <script src="genericGraph.js"></script>
     <script src="lvl1Graph.js"></script>
@@ -264,15 +261,11 @@
 </head>
 
 <body class="background">
-    <div class="container">
+    <div class="full container">
         <input id="filename" type="text" name="file" />
         <button id="load" class="btn btn-info">Load</button>
         <button id="btnExport" class="btn btn-primary">Export</button>
         <button id="btnHelp" class="btn btn-default">Help</button>
-        <div class="btn-group left-space">
-            <button id="btnPlus" class="btn btn-success disabled plusminus">+</button>
-            <button id="btnMinus" class="btn btn-danger disabled plusminus">-</button>
-        </div>
 
         <div class="well export">
             <h2>
@@ -282,9 +275,7 @@
         </div>
 
         <div class="well help">
-            <h2>
-                Command Help
-            </h2>
+            <h2>Command Help</h2>
             <p>
                 <ul>
                     <li><code>Click</code> on a node in the tree to add a new child.</li>
@@ -306,10 +297,17 @@
             <div></div>
         </div>
     </div>
-    <div id="lin-cont" class="col col-2"></div>
-    <div id="lin2-cont" class="col col-2"></div>
-    <div id="tree-cont" class="col col-1"></div>
-    <div id="lin3-cont" class="col col-2"></div>
+
+    <div class="full col col-80">
+        <div id="lin-cont" class="col col-50"></div>
+        <div id="lin2-cont" class="col col-50"></div>
+        <div id="lin3-cont" class="col col-50"></div>
+    </div>
+
+    <div class="full col col-20">
+        <div id="tree-cont" class="full col"></div>
+    </div>
+
     <script>
         $("#load").click(function() {
             d3.json($("#filename").val(), arcDiagram);

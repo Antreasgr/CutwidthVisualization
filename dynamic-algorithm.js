@@ -46,7 +46,7 @@
 
     DynamicAlgorithm.DynamicCutWidth = function(graph, cutwidth_fn) {
         $(".well.debug").slideToggle();
-        $(".well.debug div").html("Running Dynamic Algorithm please wait.....<ul></ul>");
+        $(".well.debug div").html("<h3>Running Dynamic Algorithm please wait.....</h3><ul></ul>");
         var A = {};
         var nodes = graph.nodes;
         for (var i = 1; i <= nodes.length; i++) {
