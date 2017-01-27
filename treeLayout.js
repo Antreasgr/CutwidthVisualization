@@ -8,6 +8,7 @@ function treeLayout(graph, element) {
 
     this.diagonal = d3.svg.diagonal().projection(function(d) { return [d.x, d.y]; });
 
+    this.radius = 10;
     var self = this;
     this.graph.addLayout(this);
 
@@ -101,30 +102,21 @@ function treeLayout(graph, element) {
         node.selectAll("text")
             .text(function(d) { return d.size; })
 
-        //update styles
-        node.select("circle")
-            .style("fill", function(d) { return (d.fill ? "url(#" + d.fill + ")" : "#fff"); });
-
         // Enter the nodes.
         var nodeEnter = node.enter().append("g")
             .attr("class", "treenode")
             .attr("transform", function(d) {
-                return "translate(" + d.x + "," + d.y + ")";
+                return "translate(" + d.x + "," + (d.y) + ")";
             })
             .on("mouseover", function(d, i) {
                 self.graph.updateSelection(d);
-                $(".plusminus").removeClass("disabled");
-                //updateDebug(d);
             })
             .on("mouseout", function(d, i) {
                 self.graph.updateSelection(d);
-                $(".plusminus").addClass("disabled");
-                //updateDebug(null);
             });
 
         nodeEnter.append("circle")
-            .attr("r", 10)
-            .style("fill", function(d) { return "white"; })
+            .attr("r", self.radius)
             .on("click", this.graph.treeclick.bind(this.graph));
 
         nodeEnter.append("text")
@@ -132,9 +124,8 @@ function treeLayout(graph, element) {
                 return -18;
             })
             .attr("dy", ".35em")
-            .attr("text-anchor", "middle")
-            .text(function(d) { return d.size; })
-            .style("fill-opacity", 1);
+            .attr("text-anchor", "end")
+            .text(function(d) { return d.size; });
 
         // Declare the links
         var link = this.gElement.selectAll("path.treelink")
@@ -155,7 +146,12 @@ function treeLayout(graph, element) {
     }
 
     this.selectionChanged = function(d) {
-
+        var sel = this.gElement.selectAll(".treenode circle");
+        if (d) {
+            sel.classed("active", function(x) { return x.name == d.name });
+        } else {
+            sel.classed("active", false);
+        }
     }
 
     // Constructor:

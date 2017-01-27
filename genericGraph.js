@@ -12,6 +12,7 @@ function genericGraph(nodes, links) {
     this.minOrders = null;
     this.minOrderIndex = 0;
 
+    var allLayouts = [];
     // fix graph links to map to objects instead of indices
     this.links.forEach(function(d, i) {
         d.source = isNaN(d.source) ? d.source : self.nodes[d.source];
@@ -20,14 +21,14 @@ function genericGraph(nodes, links) {
 
     this.addLayout = function(layout) {
         this.layouts.push(layout);
+
+        var l = this.linkedGraphs.map((a) => a.layouts);
+        allLayouts = l.reduce((p, n) => p.concat(n), []);
+        allLayouts.push.apply(allLayouts, this.layouts);
     }
 
     this.updateAll = function(caller, resize) {
         // console.log("--------------------------------------------------------");
-        var l = this.linkedGraphs.map((a) => a.layouts);
-        var allLayouts = l.reduce((p, n) => p.concat(n), []);
-        allLayouts.push.apply(allLayouts, this.layouts);
-
         for (var i = 0; i < allLayouts.length; i++) {
             if (!caller || allLayouts[i] !== caller) {
                 allLayouts[i].update();
@@ -40,10 +41,6 @@ function genericGraph(nodes, links) {
     }
 
     this.graphUpdated = function() {
-        var l = this.linkedGraphs.map((a) => a.layouts);
-        var allLayouts = l.reduce((p, n) => p.concat(n), []);
-        allLayouts.push.apply(allLayouts, this.layouts);
-
         for (var i = 0; i < allLayouts.length; i++) {
             allLayouts[i].onGraphUpdated();
         }
@@ -149,6 +146,9 @@ function genericGraph(nodes, links) {
 
     this.updateSelection = function(d) {
         this.selection = d;
+        for (var i = 0; i < allLayouts.length; i++) {
+            allLayouts[i].selectionChanged(d);
+        }
     }
 
     this.addNode = function(d) {

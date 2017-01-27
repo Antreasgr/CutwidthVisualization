@@ -218,8 +218,8 @@ function linearLayout(graph, element, name, linked) {
 
                 node[self.layoutName].bitonic = node.size * (right - left) / 2;
 
-                node[self.layoutName].nLeft = Math.abs(node.size - (right - left));
-                node[self.layoutName].nRight = node.size * (right - left); // node.size * right;
+                node[self.layoutName].nLeft = node.size * left;
+                node[self.layoutName].nRight = node.size * right; // node.size * right;
 
                 // Calculate the arrows
                 node[self.layoutName].moveLeft = false;
@@ -364,13 +364,13 @@ function linearLayout(graph, element, name, linked) {
     }
 
     this.handleMouseOver = function(d, i) {
-        d3.select(this).select("circle").style("stroke", "red");
+        d3.select(this).style("stroke", "red");
         // TODO: fix selection on every layout
         self.graph.updateSelection(d);
     }
 
     this.handleMouseOut = function(d, i) {
-        d3.select(this).select("circle").style("stroke", "");
+        d3.select(this).style("stroke", "");
         self.graph.updateSelection(null);
     }
 

@@ -63,15 +63,15 @@
     .treenode circle {
         fill: #fff;
         stroke: steelblue;
-        stroke-width: 3px;
+        /*stroke-width: 3px;*/
     }
     
     .treenode circle:hover {
         stroke: #4E606F;
     }
     
-    .treenode.active {
-        stroke: #4E60fF;
+    .treenode circle.active {
+        fill: #4E60fF;
     }
     
     .well {

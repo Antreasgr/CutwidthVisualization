@@ -18,6 +18,10 @@ function lvl1Graph(parentGraph) {
         self.parentGraph.updateAll(self);
     }
 
+    this.graph.updateSelection = function(d) {
+        self.parentGraph.updateSelection(d);
+    }
+
     this.svgKeyDown = function() {
         if (d3.event.shiftKey && d3.event.keyCode == 69) {
             // e key
