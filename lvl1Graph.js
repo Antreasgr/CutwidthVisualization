@@ -12,6 +12,8 @@ function lvl1Graph(parentGraph) {
     this.addLayout = function(layout) {
         layout.graph = this.graph;
         this.layouts.push(layout);
+
+        this.parentGraph.getAllLayouts(true);
     }
 
     this.graph.updateAll = function() {
@@ -26,6 +28,7 @@ function lvl1Graph(parentGraph) {
         if (d3.event.shiftKey && d3.event.keyCode == 69) {
             // e key
             this.graph.DynamicCutWidth(this.graph);
+            console.log(this.graph.minimumCutwidth);
             this.minimumCutwidth = this.graph.minimumCutwidth.Value;
             this.parentGraph.updateAll();
         }

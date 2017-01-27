@@ -12,23 +12,36 @@ function genericGraph(nodes, links) {
     this.minOrders = null;
     this.minOrderIndex = 0;
 
-    var allLayouts = [];
     // fix graph links to map to objects instead of indices
     this.links.forEach(function(d, i) {
         d.source = isNaN(d.source) ? d.source : self.nodes[d.source];
         d.target = isNaN(d.target) ? d.target : self.nodes[d.target];
     });
 
+    var allL = [];
+    this.getAllLayouts = function(force) {
+        if (allL.length == 0 || force) {
+            var l = this.linkedGraphs.map((a) => a.layouts);
+            allL = l.reduce((p, n) => p.concat(n), []);
+            allL.push.apply(allL, this.layouts);
+        }
+
+        return allL;
+    }
+
     this.addLayout = function(layout) {
         this.layouts.push(layout);
+        this.getAllLayouts(true);
+    }
 
-        var l = this.linkedGraphs.map((a) => a.layouts);
-        allLayouts = l.reduce((p, n) => p.concat(n), []);
-        allLayouts.push.apply(allLayouts, this.layouts);
+    this.addLinkedGraph = function(graph) {
+        this.linkedGraphs.push(graph);
+        this.getAllLayouts(true);
     }
 
     this.updateAll = function(caller, resize) {
         // console.log("--------------------------------------------------------");
+        var allLayouts = this.getAllLayouts();
         for (var i = 0; i < allLayouts.length; i++) {
             if (!caller || allLayouts[i] !== caller) {
                 allLayouts[i].update();
@@ -41,6 +54,7 @@ function genericGraph(nodes, links) {
     }
 
     this.graphUpdated = function() {
+        var allLayouts = this.getAllLayouts();
         for (var i = 0; i < allLayouts.length; i++) {
             allLayouts[i].onGraphUpdated();
         }
@@ -50,10 +64,6 @@ function genericGraph(nodes, links) {
         var g = new lvl1Graph(this);
         this.addLinkedGraph(g);
         return g;
-    }
-
-    this.addLinkedGraph = function(graph) {
-        this.linkedGraphs.push(graph);
     }
 
     this.svgKeyDown = function() {
@@ -146,6 +156,8 @@ function genericGraph(nodes, links) {
 
     this.updateSelection = function(d) {
         this.selection = d;
+
+        var allLayouts = this.getAllLayouts();
         for (var i = 0; i < allLayouts.length; i++) {
             allLayouts[i].selectionChanged(d);
         }
@@ -249,7 +261,7 @@ function genericGraph(nodes, links) {
         console.log(this.minOrderIndex);
         if (changed) {
             var _this = this;
-            this.graph.nodes.forEach(function(d, i) {
+            this.nodes.forEach(function(d, i) {
                 d.order = _this.minOrders[_this.minOrderIndex][i];
             });
 
@@ -501,9 +513,9 @@ function genericGraph(nodes, links) {
         // Generate the simple graph from compact tree representation
         var simpleNodes = [];
         var simpleLinks = [];
-        for (var i = 0; i < this.graph.nodes.length; i++) {
-            for (var s = 0; s < this.graph.nodes[i].size; s++) {
-                simpleNodes.push({ rank: 0, deg: 0, node: this.graph.nodes[i] });
+        for (var i = 0; i < this.nodes.length; i++) {
+            for (var s = 0; s < this.nodes[i].size; s++) {
+                simpleNodes.push({ rank: 0, deg: 0, node: this.nodes[i] });
 
                 // add links to all previous vertices in this clique
                 for (var j = 0; j < s; j++) {
@@ -512,10 +524,10 @@ function genericGraph(nodes, links) {
 
                 // add links to all previous cliques
                 for (var j = 0; j < simpleNodes.length; j++) {
-                    for (var k = 0; k < this.graph.links.length; k++) {
-                        if (this.graph.links[k].source == simpleNodes[j].node && this.graph.links[k].target == this.graph.nodes[i]) {
+                    for (var k = 0; k < this.links.length; k++) {
+                        if (this.links[k].source == simpleNodes[j].node && this.links[k].target == this.nodes[i]) {
                             simpleLinks.push({ source: simpleNodes[j], target: simpleNodes[simpleNodes.length - 1] });
-                        } else if (this.graph.links[k].target == simpleNodes[j].node && this.graph.links[k].source == this.graph.nodes[i]) {
+                        } else if (this.links[k].target == simpleNodes[j].node && this.links[k].source == this.nodes[i]) {
                             simpleLinks.push({ target: simpleNodes[j], source: simpleNodes[simpleNodes.length - 1] });
                         }
                     }
@@ -560,9 +572,9 @@ function genericGraph(nodes, links) {
 
         // Go back to compact tree representation using Lemma 3.3 () by gathering each vertex to the middle one of
         // each clique
-        for (var i = 0; i < this.graph.nodes.length; i++) {
-            this.graph.nodes[i].order = -1;
-            this.graph.nodes[i].HaveSeenMiddleVertex = 0;
+        for (var i = 0; i < this.nodes.length; i++) {
+            this.nodes[i].order = -1;
+            this.nodes[i].HaveSeenMiddleVertex = 0;
         }
 
         simpleNodes.sort(function(a, b) { return a.order - b.order });
